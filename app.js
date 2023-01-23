@@ -12,13 +12,14 @@ function addItem(e)
 {
     e.preventDefault();
     var newitem=document.getElementById('item');
+    var it2 = document.getElementById('item2');
     
     var li = document.createElement('li');
 
     li.classList.add('list-group-item')
-    console.log(li);
+    //console.log(li);
 
-    li.appendChild(document.createTextNode(newitem.value));
+    li.appendChild(document.createTextNode(`${newitem.value } ${it2.value}`));
 
     var btn = document.createElement('button')
     //or we can add:
@@ -54,11 +55,11 @@ function remove(e)
         
     }
 
-    var items= document.getElementsByTagName('li');
+    //var items= document.getElementsByTagName('li');
     
-    //console.log(items.length)
+    //console.log(listlist.children.length)
     
-    for(i=0; i<items.length;i++)
+    for(i=0; i<listlist.children.length;i++)
     {   
         var newele=document.createElement('button');
         newele.className=' btn btn-primary btn-sm float-right';
@@ -66,3 +67,27 @@ function remove(e)
         itemlist.children[i].appendChild(newele);
         
     }
+
+var filt = document.getElementById('filter');
+
+//add event grabber
+filt.addEventListener('keyup',filter)
+function filter(e)
+{   //console.log(Array.from(itemlist.children))
+    var text= e.target.value.toLowerCase();
+    Array.from(itemlist.children).forEach(function(item){ 
+            var itemname = item.firstChild.textContent;
+            
+
+            if(itemname.toLowerCase().indexOf(text)!=-1)
+            {
+            item.style.display='block'
+            }
+            else 
+            {
+            item.style.display='none'
+            }
+    
+})
+    
+}
