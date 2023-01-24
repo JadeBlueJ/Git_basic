@@ -19,8 +19,8 @@
                 <h2 class="card-title"style="text-align:center">Schedule your Appointment</h2>
                 <p class="card-subtitle" style="text-align:center ">Book a call and one of our representatives will get in touch with you</p>
                 <hr size="10px"><br><br>
-                <div class="card-text border-3">
-                        <form action = "#" onsubmit="getval(event)">
+                    <div class="card-text border-3">
+                        <form id = "my-form" action = "#" onsubmit="getval(event)">
 
                             <label for="fname" class="form-label"> Name : </label><br>
                             <input type="text" id="fname" name="fname" class="form-control" required><br><br>
@@ -31,18 +31,20 @@
                             <label for="phone" class="form-label"> Phone : </label><br>
                             <input type="tel" id="phone" name="phone" class="form-control" required><br><br>
                     
-                            <label for="call" class="form-label"> Time for Call : </label>
+                            <!--<label for="call" class="form-label"> Time for Call : </label>
                             <div class="d-flex">
                                 <input type="date" id="call" class="form-control"  required> 
                                 <input type="time" id="tim" class="form-control" required><br><br>
-                            </div>
+                            </div>-->
 
                             <br>
                             <div style="text-align:center;"> 
                                 <input type="submit"  class="btn btn-primary shadow " value="Get a Call" readonly/> <br><br>
                             </div>
+                            
                         </form>
-                </div>
+                        <ul id="users"></ul>
+                    </div>
             </div>
         </div>
     </div>
@@ -69,8 +71,8 @@
         const nam = document.getElementById('fname').value;
         const mail = document.getElementById('mail').value;
         const phone = document.getElementById('phone').value;
-        const dat=document.getElementById('call').value;
-        const tim =document.getElementById('tim').value;
+        //const dat=document.getElementById('call').value;
+        //const tim =document.getElementById('tim').value;
         //localStorage.setItem('name',nam);
         //localStorage.setItem('mail',mail);
         //localStorage.setItem('date',dat);
@@ -80,13 +82,14 @@
             name : nam,
             mail : mail,
             phone : phone,
-            date : dat,
-            time : tim,
+            //date : dat,
+            //time : tim,
         };
 
-        localStorage.setItem('object', JSON.stringify(ob))
+        localStorage.setItem(mail, JSON.stringify(ob))
 
         }
     </script>
+    <script src="main.js"></script>
 </body> 
 </html>
