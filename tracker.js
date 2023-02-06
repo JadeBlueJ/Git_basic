@@ -2,17 +2,17 @@
 function getval(event){
     event.preventDefault();
     alert("The form has been submitted");
-    var name1 = event.target.fname.value;
-    var mail = event.target.mail.value;
-    var phone = event.target.phone.value;
-
+    var amt = event.target.amount.value;
+    var descr = event.target.descr.value;
+    var cat = event.target.cat.value;
+   
 let ob = {
-    name1,
-    mail,
-    phone
+    amt,
+    descr,
+    cat
 };
-
-localStorage.setItem(mail, JSON.stringify(ob))
+console.log(ob.amt)
+localStorage.setItem(amt, JSON.stringify(ob))
 UIelement(ob);
 
 }
@@ -22,8 +22,8 @@ const ul = document.querySelector('#users');
 function UIelement(ob){
 
         var li=document.createElement('li');
-        li.appendChild(document.createTextNode(`${ob.name1} : ${ob.mail} : ${ob.phone}`) );
-        li.id=ob.mail;
+        li.appendChild(document.createTextNode(`${ob.amt} : ${ob.cat} : ${ob.descr}`) );
+        li.id=ob.amt;
         //console.log(li);
 
         
@@ -38,7 +38,7 @@ function UIelement(ob){
                 //var item = event.target.parentElement;
                 //ul.removeChild(item)
                 //localStorage.removeItem(item.id)
-                localStorage.removeItem(ob.mail)
+                localStorage.removeItem(ob.amt)
                 ul.removeChild(li);
 
             }
@@ -49,10 +49,10 @@ function UIelement(ob){
         editele.className='btn btn-secondary btn-sm m-1 float-right'
         editele.appendChild(document.createTextNode('Edit'));
         editele.onclick=()=>{
-            localStorage.removeItem(ob.mail);
-            document.getElementById('fullname').value = ob.name1;
-            document.getElementById('mailid').value = ob.mail;
-            document.getElementById('phoneno').value = ob.phone;
+            localStorage.removeItem(ob.amt);
+            document.getElementById('amount').value = ob.amt;
+            document.getElementById('descr').value = ob.descr;
+            document.getElementById('category').value = ob.cat;
             
             ul.removeChild(li)
         }
