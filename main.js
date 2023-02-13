@@ -28,7 +28,7 @@ window.addEventListener("load",(e)=>{
 axios.get('https://crudcrud.com/api/7f911fed0d704e9684b1c60fcc4099a2/appointment')
 .then(val=>{
    //items=Object.keys(val);
-    console.log(val.data)
+
     val.data.forEach(item => {
          UIelement(item);
     // });
@@ -72,10 +72,10 @@ function UIelement(ob){
         editele.appendChild(document.createTextNode('Edit'));
         editele.onclick=()=>{
             // localStorage.removeItem(ob.mail);
+            axios.delete(`https://crudcrud.com/api/7f911fed0d704e9684b1c60fcc4099a2/appointment/${ob._id}`)
             document.getElementById('fullname').value = ob.name1;
             document.getElementById('mailid').value = ob.mail;
             document.getElementById('phoneno').value = ob.phone;
-            
             ul.removeChild(li)
         }
 
