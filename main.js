@@ -12,12 +12,30 @@ let ob = {
     phone
 };
 
-localStorage.setItem(mail, JSON.stringify(ob))
-UIelement(ob);
+axios.post('https://crudcrud.com/api/7f911fed0d704e9684b1c60fcc4099a2/appointment',ob)
+.then(val =>UIelement(val.data))
+.catch(err=>console.log(err));
+
+// localStorage.setItem(mail, JSON.stringify(ob))
+// UIelement(ob);
 
 }
 const ul = document.querySelector('#users');
 //var itemlist = document.querySelector('.users');
+
+window.addEventListener("load",(e)=>{
+    e.preventDefault();
+axios.get('https://crudcrud.com/api/7f911fed0d704e9684b1c60fcc4099a2/appointment')
+.then(val=>{
+   //items=Object.keys(val);
+    console.log(val.data)
+    val.data.forEach(item => {
+         UIelement(item);
+    // });
+})
+.catch(e=>console.log(e))
+    })
+})
 
 function UIelement(ob){
 
@@ -38,7 +56,7 @@ function UIelement(ob){
                 //var item = event.target.parentElement;
                 //ul.removeChild(item)
                 //localStorage.removeItem(item.id)
-                localStorage.removeItem(ob.mail)
+                // localStorage.removeItem(ob.mail)
                 ul.removeChild(li);
 
             }
@@ -49,7 +67,7 @@ function UIelement(ob){
         editele.className='btn btn-secondary btn-sm m-1 float-right'
         editele.appendChild(document.createTextNode('Edit'));
         editele.onclick=()=>{
-            localStorage.removeItem(ob.mail);
+            // localStorage.removeItem(ob.mail);
             document.getElementById('fullname').value = ob.name1;
             document.getElementById('mailid').value = ob.mail;
             document.getElementById('phoneno').value = ob.phone;

@@ -54,7 +54,7 @@ axios.get('https://jsonplaceholder.typicode.com/todos?_limit=5',{timeout:5})
   
   // DELETE REQUEST
   function removeTodo() {
-    axios.delete('https://jsonplaceholder.typicode.com/todos/1',)
+    axios.delete('https://jsonplaceholder.typicode.com/todos/1')
             .then(val=>showOutput(val))
             .catch(e=>console.log(e))
   }
