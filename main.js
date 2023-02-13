@@ -33,8 +33,9 @@ axios.get('https://crudcrud.com/api/7f911fed0d704e9684b1c60fcc4099a2/appointment
          UIelement(item);
     // });
 })
+})
 .catch(e=>console.log(e))
-    })
+   
 })
 
 function UIelement(ob){
@@ -58,6 +59,9 @@ function UIelement(ob){
                 //localStorage.removeItem(item.id)
                 // localStorage.removeItem(ob.mail)
                 ul.removeChild(li);
+
+                axios.delete(`https://crudcrud.com/api/7f911fed0d704e9684b1c60fcc4099a2/appointment/${ob._id}`)
+                .then(val=>console.log(val.data))
 
             }
         }
