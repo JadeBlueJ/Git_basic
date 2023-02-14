@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schedule Appointment</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+</head>
+<body>
+
+    <div class="container mt-5 mb-5 d-flex justify-content-center">
+
+        <div class="card border-warning rounded-5 p-4 m-5 border-4 px-4 py-4 " >
+            <div class="card-body">
+                <h2 class="card-title"style="text-align:center">Enter Product Details</h2>
+                <hr size="10px"><br>
+                    <div class="card-text border-3">
+                        <form id = "my-form" action = "#" onsubmit="getval(event)">
+
+                            <label for="fname" class="form-label"> Product Name : </label><br>
+                            <input type="text" id="fullname" name="fname" class="form-control" required><br>
+
+                            <label for="sp" class="form-label"> Selling Price : </label><br>
+                            <input type="number" id="sp" name="price" class="form-control" required><br>
+                    
+                            <!--<label for="call" class="form-label"> Time for Call : </label>
+                            <div class="d-flex">
+                                <input type="date" id="call" class="form-control"  required> 
+                                <input type="time" id="tim" class="form-control" required><br><br>
+                            </div>-->
+
+                            <div style="text-align:center;"> 
+                                <input type="submit" class="btn btn-primary shadow " value="Add Product" readonly/> <br><br>
+                            <hr>
+                        </form>
+                    </div>
+                    <br>
+                    <div id = "value" style="text-align:center;"> 
+                        <h4>Total Product Value :</h4>
+                        <h5 id = "mod" ><p>Rs.</p></h5>
+                    </div>
+                    <div>
+                        <ul id="prods"></ul>
+                    </div>
+            </div>
+        </div>
+    </div>
+    <br><br><br><br><br>
+<style>
+        img {
+  width: 100%
+        }
+
+    
+    body {
+        background-color: coral;
+        background-image: url('fina.jpg') ;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        background-size: cover;
+    }
+</style>
+        
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="slr.js"></script>
+</body> 
+</html>
