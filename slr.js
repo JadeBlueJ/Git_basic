@@ -13,7 +13,7 @@ let ob = {
     price,
 };
 
-axios.post('https://crudcrud.com/api/a84fc970b1694a95883eb3df71ebf951/products',ob)
+axios.post('https://crudcrud.com/api/ed3875722e38429d917fb16a513529fc/products',ob)
 .then(val =>{
     UIelement(val.data)
     sum+=parseInt(val.data.price)
@@ -30,7 +30,7 @@ const ul = document.querySelector('#prods');
 
 window.addEventListener("load",(e)=>{
     e.preventDefault();
-axios.get('https://crudcrud.com/api/a84fc970b1694a95883eb3df71ebf951/products')
+axios.get('https://crudcrud.com/api/ed3875722e38429d917fb16a513529fc/products')
 .then(val=>{
    //items=Object.keys(val);
 
@@ -67,7 +67,7 @@ function UIelement(ob){
                 // localStorage.removeItem(ob.mail)
                 ul.removeChild(li);
 
-                axios.delete(`https://crudcrud.com/api/a84fc970b1694a95883eb3df71ebf951/products/${ob._id}`)
+                axios.delete(`https://crudcrud.com/api/ed3875722e38429d917fb16a513529fc/products/${ob._id}`)
                 .then(val=>{
                     sum-=parseInt(ob.price);
                     priceval.innerHTML= `Rs. ${sum}`;
