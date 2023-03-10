@@ -2,7 +2,7 @@ let sum = 0;
 var priceval = document.getElementById('mod')
 priceval.innerHTML= `Rs. ${sum}`;
 
-function getval(event){
+async function getval(event){
     event.preventDefault();
     alert("The form has been submitted");
     var name1 = event.target.fname.value;
@@ -13,40 +13,46 @@ let ob = {
     price,
 };
 
-axios.post('https://crudcrud.com/api/ed3875722e38429d917fb16a513529fc/products',ob)
-.then(val =>{
-    UIelement(val.data)
-    sum+=parseInt(val.data.price)
-    priceval.innerHTML= `Rs. ${sum}`;
-    })
-.catch(err=>console.log(err));
+try
+{
+    let resp = await axios.post('https://crudcrud.com/api/3ce73743890540dba5870b64d1ad4d2a/products',ob)
 
+    UIelement(resp.data)
+    sum+=parseInt(resp.data.price)
+    priceval.innerHTML= `Rs. ${sum}`;
+}
 // localStorage.setItem(mail, JSON.stringify(ob))
 // UIelement(ob);
+catch(e)
+{
+    console.log(e)
+}
 
 }
+
 const ul = document.querySelector('#prods');
 //var itemlist = document.querySelector('.users');
 
-window.addEventListener("load",(e)=>{
+window.addEventListener("load", async(e)=>{
     e.preventDefault();
-axios.get('https://crudcrud.com/api/ed3875722e38429d917fb16a513529fc/products')
-.then(val=>{
+    try{
+        let resp = await axios.get('https://crudcrud.com/api/3ce73743890540dba5870b64d1ad4d2a/products')
    //items=Object.keys(val);
-
-    val.data.forEach(item => {
+        resp.data.forEach(item => {
          UIelement(item);
          sum+=parseInt(item.price);
          priceval.innerHTML= `Rs. ${sum}`;
     // });
 })
-})
-.catch(e=>console.log(e))
-   
+    }
+catch(e)
+{
+    console.log(e)
+}
 })
 
 
-function UIelement(ob){
+async function UIelement(ob){
 
         var li=document.createElement('li');
         li.appendChild(document.createTextNode(`${ob.name1} : ${ob.price}`) );
@@ -57,7 +63,7 @@ function UIelement(ob){
         newele.className=' btn btn-danger btn-sm m-1 float-right';
         newele.appendChild(document.createTextNode('Delete'));
         newele.id='delbtn';
-        newele.addEventListener("click", ()=>
+        newele.addEventListener("click", async()=>
         {   
             if (confirm('delete me?'))
             {   //console.log(li)
@@ -67,15 +73,21 @@ function UIelement(ob){
                 // localStorage.removeItem(ob.mail)
                 ul.removeChild(li);
 
-                axios.delete(`https://crudcrud.com/api/ed3875722e38429d917fb16a513529fc/products/${ob._id}`)
-                .then(val=>{
+                try
+                {
+                    let resp = await axios.delete(`https://crudcrud.com/api/3ce73743890540dba5870b64d1ad4d2a/products/${ob._id}`)
                     sum-=parseInt(ob.price);
                     priceval.innerHTML= `Rs. ${sum}`;
-                    console.log(val.data)
-                })
-            }
-        }
-        );
+                    console.log(resp.data)
+                    
+                }
+                catch(e)
+                {
+                    console.log(e)
+                }
+                }
+        })
+
         li.appendChild(newele);
         ul.appendChild(li);
 }
