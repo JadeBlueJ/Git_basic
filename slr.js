@@ -13,20 +13,20 @@ let ob = {
     price,
 };
 
-try
-{
-    let resp = await axios.post('https://crudcrud.com/api/3ce73743890540dba5870b64d1ad4d2a/products',ob)
+    try
+    {
+        let resp = await axios.post('https://crudcrud.com/api/3ce73743890540dba5870b64d1ad4d2a/products',ob)
 
-    UIelement(resp.data)
-    sum+=parseInt(resp.data.price)
-    priceval.innerHTML= `Rs. ${sum}`;
-}
-// localStorage.setItem(mail, JSON.stringify(ob))
-// UIelement(ob);
-catch(e)
-{
-    console.log(e)
-}
+        UIelement(resp.data)
+        sum+=parseInt(resp.data.price)
+        priceval.innerHTML= `Rs. ${sum}`;
+    }
+    // localStorage.setItem(mail, JSON.stringify(ob))
+    // UIelement(ob);
+    catch(e)
+    {
+        console.log(e)
+    }
 
 }
 
@@ -46,9 +46,9 @@ window.addEventListener("load", async(e)=>{
 })
     }
 catch(e)
-{
-    console.log(e)
-}
+    {
+        console.log(e)
+    }
 })
 
 
