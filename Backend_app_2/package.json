@@ -1,0 +1,27 @@
+{
+  "name": "git_basic",
+  "version": "1.0.0",
+  "description": "backend guide",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon app.js",
+    "start-server": "node app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JadeBlueJ/Git_basic.git"
+  },
+  "author": "Jade",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/JadeBlueJ/Git_basic/issues"
+  },
+  "homepage": "https://github.com/JadeBlueJ/Git_basic#readme",
+  "devDependencies": {
+    "nodemon": "^2.0.21"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
