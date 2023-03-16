@@ -17,7 +17,7 @@ app.use('/',shop_routes)
 app.use('/contactus',contact_routes)
 
 app.use('/success',(req,res,next)=>{
-    res.send('Form Successfully filled')
+    res.send('<h1>Form Successfully filled</h1>')
 })
 
 app.use((req, res, next) => {
