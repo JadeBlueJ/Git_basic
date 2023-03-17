@@ -4,28 +4,24 @@ const bodyParser = require('body-parser')
 const admin_routes = require('./routes/admin')
 const shop_routes = require('./routes/shop')
 const contact_routes = require('./routes/contact.js')
+const errctrl = require('./controllers/error')
+const successsplash = require('./controllers/contact')
 
 const express = require('express');
 
 const app = express()
 app.use(express.static(path.join(__dirname,'public')))
-
+app.set('view engine', 'ejs');
+app.set('views', 'views');
 app.use(bodyParser.urlencoded({extended:false}))
 
 app.use('/admin',admin_routes)
 app.use('/',shop_routes)
 app.use('/contactus',contact_routes)
 
-app.use('/success',(req,res,next)=>{
-    res.send('<h1>Form Successfully filled</h1>')
-})
+app.use('/success',successsplash.splash)
 
-app.use((req, res, next) => {
-    res.status(404).sendFile(path.join(__dirname, 'views', '404.html'));
-});
-
-// const server = http.createServer(app);
-// server.listen(4000)
+app.use(errctrl.getErr);
  
 app.listen(4000)
 
