@@ -1,5 +1,8 @@
 const http = require('http')
 const path = require('path')
+const express = require('express');
+const app = express()
+
 const bodyParser = require('body-parser')
 const admin_routes = require('./routes/admin')
 const shop_routes = require('./routes/shop')
@@ -7,9 +10,7 @@ const contact_routes = require('./routes/contact.js')
 const errctrl = require('./controllers/error')
 const successsplash = require('./controllers/contact')
 
-const express = require('express');
 
-const app = express()
 app.use(express.static(path.join(__dirname,'public')))
 app.set('view engine', 'ejs');
 app.set('views', 'views');
