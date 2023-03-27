@@ -2,34 +2,32 @@
 function getval(event){
     event.preventDefault();
     alert("The form has been submitted");
-    var name1 = event.target.fname.value;
-    var mail = event.target.mail.value;
+    var name = event.target.fname.value;
+    var mailid = event.target.mail.value;
     var phone = event.target.phone.value;
 
 let ob = {
-    name1,
-    mail,
+    name,
+    mailid,
     phone
 };
 
-axios.post('https://crudcrud.com/api/7f911fed0d704e9684b1c60fcc4099a2/appointment',ob)
-.then(val =>UIelement(val.data))
+axios.post('http://localhost:3000/user/add-user',ob)
+.then(val =>{
+    // console.log(val)
+    UIelement(val.data.newUserDetail)
+})
 .catch(err=>console.log(err));
-
-// localStorage.setItem(mail, JSON.stringify(ob))
-// UIelement(ob);
-
 }
 const ul = document.querySelector('#users');
 //var itemlist = document.querySelector('.users');
 
 window.addEventListener("load",(e)=>{
     e.preventDefault();
-axios.get('https://crudcrud.com/api/7f911fed0d704e9684b1c60fcc4099a2/appointment')
+axios.get('http://localhost:3000/user/get-user')
 .then(val=>{
-   //items=Object.keys(val);
 
-    val.data.forEach(item => {
+    val.data.allUsers.forEach(item => {
          UIelement(item);
     // });
 })
@@ -41,8 +39,8 @@ axios.get('https://crudcrud.com/api/7f911fed0d704e9684b1c60fcc4099a2/appointment
 function UIelement(ob){
 
         var li=document.createElement('li');
-        li.appendChild(document.createTextNode(`${ob.name1} : ${ob.mail} : ${ob.phone}`) );
-        li.id=ob.mail;
+        li.appendChild(document.createTextNode(`${ob.name} : ${ob.mailid} : ${ob.phone}`) );
+        li.id=ob.phone;
         //console.log(li);
 
         
@@ -60,27 +58,27 @@ function UIelement(ob){
                 // localStorage.removeItem(ob.mail)
                 ul.removeChild(li);
 
-                axios.delete(`https://crudcrud.com/api/7f911fed0d704e9684b1c60fcc4099a2/appointment/${ob._id}`)
+                axios.delete(`http://localhost:3000/user/delete-user/${ob.id}`)
                 .then(val=>console.log(val.data))
 
             }
         }
         );
 
-        var editele = document.createElement('button');
-        editele.className='btn btn-secondary btn-sm m-1 float-right'
-        editele.appendChild(document.createTextNode('Edit'));
-        editele.onclick=()=>{
-            // localStorage.removeItem(ob.mail);
-            axios.delete(`https://crudcrud.com/api/7f911fed0d704e9684b1c60fcc4099a2/appointment/${ob._id}`)
-            document.getElementById('fullname').value = ob.name1;
-            document.getElementById('mailid').value = ob.mail;
-            document.getElementById('phoneno').value = ob.phone;
-            ul.removeChild(li)
-        }
+        // var editele = document.createElement('button');
+        // editele.className='btn btn-secondary btn-sm m-1 float-right'
+        // editele.appendChild(document.createTextNode('Edit'));
+        // editele.onclick=()=>{
+        //     // localStorage.removeItem(ob.mail);
+        //     axios.delete(`https://crudcrud.com/api/7f911fed0d704e9684b1c60fcc4099a2/appointment/${ob._id}`)
+        //     document.getElementById('fullname').value = ob.name1;
+        //     document.getElementById('mailid').value = ob.mail;
+        //     document.getElementById('phoneno').value = ob.phone;
+        //     ul.removeChild(li)
+        // }
 
         li.appendChild(newele);
-        li.appendChild(editele);
+        // li.appendChild(editele);
         ul.appendChild(li);
 }
 

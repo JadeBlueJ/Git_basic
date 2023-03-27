@@ -1,29 +1,49 @@
+const ul = document.querySelector('#users');
+
 
 function getval(event){
     event.preventDefault();
     alert("The form has been submitted");
-    var amt = event.target.amount.value;
-    var descr = event.target.descr.value;
-    var cat = event.target.cat.value;
+    var amount = event.target.amt.value;
+    var description = event.target.descr.value;
+    var category = event.target.cat.value;
    
 let ob = {
-    amt,
-    descr,
-    cat
+    amount,
+    description,
+    category
 };
-console.log(ob.amt)
-localStorage.setItem(amt, JSON.stringify(ob))
-UIelement(ob);
 
+axios.post('http://localhost:3000/expense/add-expense',ob)
+.then(val =>{
+    // console.log(val)
+    UIelement(val.data.newExpDetail)
+})
+.catch(err=>console.log(err));
 }
-const ul = document.querySelector('#users');
+
+
 //var itemlist = document.querySelector('.users');
+window.addEventListener("load",(e)=>{
+    e.preventDefault();
+axios.get('http://localhost:3000/expense/get-expense')
+.then(val=>{
+
+    val.data.allExp.forEach(item => {
+         UIelement(item);
+    // });
+})
+})
+.catch(e=>console.log(e))
+   
+})
+
 
 function UIelement(ob){
 
         var li=document.createElement('li');
-        li.appendChild(document.createTextNode(`${ob.amt} : ${ob.cat} : ${ob.descr}`) );
-        li.id=ob.amt;
+        li.appendChild(document.createTextNode(`${ob.amount} : ${ob.category} : ${ob.description}`) );
+        // li.id=ob.id;
         //console.log(li);
 
         
@@ -38,8 +58,9 @@ function UIelement(ob){
                 //var item = event.target.parentElement;
                 //ul.removeChild(item)
                 //localStorage.removeItem(item.id)
-                localStorage.removeItem(ob.amt)
                 ul.removeChild(li);
+                axios.delete(`http://localhost:3000/expense/delete-expense/${ob.id}`)
+                .then(val=>console.log(val.data))
 
             }
         }
@@ -49,12 +70,13 @@ function UIelement(ob){
         editele.className='btn btn-secondary btn-sm m-1 float-right'
         editele.appendChild(document.createTextNode('Edit'));
         editele.onclick=()=>{
-            localStorage.removeItem(ob.amt);
-            document.getElementById('amount').value = ob.amt;
-            document.getElementById('descr').value = ob.descr;
-            document.getElementById('category').value = ob.cat;
-            
+            axios.delete(`http://localhost:3000/expense/delete-expense/${ob.id}`)
+                .then(val=>console.log(val.data))
+            document.getElementById('amount').value = ob.amount;
+            document.getElementById('descr').value = ob.description;
+            document.getElementById('category').value = ob.category;
             ul.removeChild(li)
+
         }
 
         li.appendChild(newele);
