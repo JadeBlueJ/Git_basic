@@ -1,8 +1,9 @@
 const ul = document.querySelector('#users');
-
+let sum = 0;
+var priceval = document.getElementById('mod')
+priceval.innerHTML= `Rs. ${sum}`;
 
 function getval(event){
-    event.preventDefault();
     alert("The form has been submitted");
     var amount = event.target.amt.value;
     var description = event.target.descr.value;
@@ -18,6 +19,8 @@ axios.post('http://localhost:3000/expense/add-expense',ob)
 .then(val =>{
     // console.log(val)
     UIelement(val.data.newExpDetail)
+    sum+=parseInt(val.data.newExpDetail.amount)
+    priceval.innerHTML= `Rs. ${sum}`
 })
 .catch(err=>console.log(err));
 }
@@ -31,6 +34,7 @@ axios.get('http://localhost:3000/expense/get-expense')
 
     val.data.allExp.forEach(item => {
          UIelement(item);
+         
     // });
 })
 })
@@ -45,6 +49,8 @@ function UIelement(ob){
         li.appendChild(document.createTextNode(`${ob.amount} : ${ob.category} : ${ob.description}`) );
         // li.id=ob.id;
         //console.log(li);
+        sum+=parseInt(ob.amount)
+         priceval.innerHTML= `Rs. ${sum}`
 
         
         var newele=document.createElement('button');
@@ -58,9 +64,13 @@ function UIelement(ob){
                 //var item = event.target.parentElement;
                 //ul.removeChild(item)
                 //localStorage.removeItem(item.id)
+                sum-=parseInt(ob.amount)
+                priceval.innerHTML= `Rs. ${sum}`
+                //Above code resolves the total sum variable
                 ul.removeChild(li);
                 axios.delete(`http://localhost:3000/expense/delete-expense/${ob.id}`)
                 .then(val=>console.log(val.data))
+                
 
             }
         }
@@ -70,6 +80,9 @@ function UIelement(ob){
         editele.className='btn btn-secondary btn-sm m-1 float-right'
         editele.appendChild(document.createTextNode('Edit'));
         editele.onclick=()=>{
+            sum-=parseInt(ob.amount)
+            priceval.innerHTML= `Rs. ${sum}`
+
             axios.delete(`http://localhost:3000/expense/delete-expense/${ob.id}`)
                 .then(val=>console.log(val.data))
             document.getElementById('amount').value = ob.amount;
