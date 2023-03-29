@@ -27,7 +27,7 @@ axios.post('http://localhost:3000/shop/add-candy',ob)
 //var itemlist = document.querySelector('.users');
 window.addEventListener("DOMContentLoaded",(e)=>{
     e.preventDefault();
-axios.get('http://localhost:3000/shop/get-candy')
+axios.get('http://localhost:3000/shop/get-candies')
 .then(val=>{
     val.data.allCandy.forEach(item => {
     UIelement(item);
@@ -37,7 +37,6 @@ axios.get('http://localhost:3000/shop/get-candy')
 .catch(e=>console.log(e))
    
 })
-
 
 function UIelement(ob){
 
@@ -63,22 +62,21 @@ function UIelement(ob){
         if (ob.qty>=1)
         {   li.appendChild(b1)
             b1.addEventListener("click", ()=>
-            {    
+            {       
                     if(ob.qty>1)
                     {   if(confirm('Buy 1?'))
-                        {axios.put(`http://localhost:3000/shop/update-candy-1/${ob.id}`)
-                        .then(result=>axios.get('http://localhost:3000/shop/get-candy')
-                        .then(val=>{
-                            val.data.allCandy.forEach(item => {
-                            UIelement(item);
-                                })
-                            })
-                        )
-                        .catch(e=>console.log(e))
+                        {   
+
+                            axios.put(`http://localhost:3000/shop/update-candy-1/${ob.id}`)
+                            // .then(result=>axios.get(`http://localhost:3000/shop/get-candy/${ob.id}`))
+                            // .then(val=>UIelement(val))
+                            // .catch(e=>console.log(e))
+
+                            location.reload()
                         }
 
                     }
-                    else if(confirm('Buy last product?')){
+                    else if(confirm('Buy last candy?')){
                         ul.removeChild(li);
                         axios.delete(`http://localhost:3000/shop/delete-candy/${ob.id}`)
                         .then(val=>console.log(val.data))
@@ -88,21 +86,19 @@ function UIelement(ob){
         if (ob.qty>=2)
         {   li.appendChild(b2)
             b2.addEventListener("click", ()=>
-            {    
+            {       
                     if(ob.qty>2)
                     {   if(confirm('Buy 2?'))
-                        {axios.put(`http://localhost:3000/shop/update-candy-2/${ob.id}`)
-                        .then(result=>axios.get('http://localhost:3000/shop/get-candy')
-                        .then(val=>{
-                            val.data.allCandy.forEach(item => {
-                            UIelement(item);
-                                })
-                            })
-                        )
-                        .catch(e=>console.log(e))
+                        {   
+
+                            axios.put(`http://localhost:3000/shop/update-candy-2/${ob.id}`)
+                            // .then(result=>axios.get(`http://localhost:3000/shop/get-candy/${ob.id}`))
+                            // .then(val=>UIelement(val))
+                            // .catch(e=>console.log(e))
+                            location.reload()
                         }
                     }
-                    else if(confirm('Buy last 2 products?')){
+                    else if(confirm('Buy last 2 candies?')){
                         ul.removeChild(li);
                         axios.delete(`http://localhost:3000/shop/delete-candy/${ob.id}`)
                         .then(val=>console.log(val.data))
@@ -113,22 +109,19 @@ function UIelement(ob){
         if (ob.qty>=3)
         {   li.appendChild(b3)
             b3.addEventListener("click", ()=>
-            {    
+            {       
                     if(ob.qty>3)
                     {   if (confirm('Buy 3?'))
-                        {axios.put(`http://localhost:3000/shop/update-candy-3/${ob.id}`)
-                        .then(result=>axios.get('http://localhost:3000/shop/get-candy')
-                        .then(val=>{
-                            val.data.allCandy.forEach(item => {
-                            UIelement(item);
-                                })
-                            })
-                        )
-                        .catch(e=>console.log(e))
-                        }
+                        {   
 
+                            axios.put(`http://localhost:3000/shop/update-candy-3/${ob.id}`)
+                            // .then(result=>axios.get(`http://localhost:3000/shop/get-candy/${ob.id}`))
+                            // .then(val=>UIelement(val))
+                            // .catch(e=>console.log(e))
+                            location.reload()
+                        }
                     }
-                    else if(confirm('Buy last 3 products?')){
+                    else if(confirm('Buy last 3 candies?')){
                         ul.removeChild(li);
                         axios.delete(`http://localhost:3000/shop/delete-candy/${ob.id}`)
                         .then(val=>console.log(val.data))

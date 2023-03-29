@@ -8,7 +8,9 @@ const router = express.Router();
 
 router.post('/shop/add-candy',adminController.postCandy)
 
-router.get('/shop/get-candy',adminController.getCandy)
+router.get('/shop/get-candies',adminController.getCandies)
+
+router.get('/shop/get-candy/:id',adminController.getCandy)
 
 router.put('/shop/update-candy-1/:id',adminController.updateCandy1)
 

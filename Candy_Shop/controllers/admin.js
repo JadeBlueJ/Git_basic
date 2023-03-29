@@ -18,10 +18,16 @@ exports.postCandy = async (req,res,next)=>{
   }
 }
 
-exports.getCandy = async(req,res,next)=>{
+exports.getCandies = async(req,res,next)=>{
 
   const candies = await Candy.findAll()
   res.json({allCandy:candies})
+}
+
+exports.getCandy = async(req,res,next)=>{
+  const cid = req.params.id 
+  const candy = await Candy.findByPk(cid)
+  res.json(candy)
 }
 
 exports.updateCandy1 = async(req,res,next)=>{
