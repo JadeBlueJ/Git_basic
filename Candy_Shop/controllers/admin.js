@@ -32,7 +32,6 @@ exports.getCandy = async(req,res,next)=>{
 
 exports.updateCandy1 = async(req,res,next)=>{
   const updateId = req.params.id
-  // console.log(deluser)
   Candy.findByPk(updateId).then(candy=>{
     Candy.update(
       {
@@ -51,7 +50,6 @@ exports.updateCandy1 = async(req,res,next)=>{
 
 exports.updateCandy2 = async(req,res,next)=>{
   const updateId = req.params.id
-  // console.log(deluser)
   Candy.findByPk(updateId).then(candy=>{
     Candy.update(
       {
@@ -70,7 +68,6 @@ exports.updateCandy2 = async(req,res,next)=>{
 
 exports.updateCandy3 = async(req,res,next)=>{
   const updateId = req.params.id
-  // console.log(deluser)
   Candy.findByPk(updateId).then(candy=>{
     Candy.update(
       {
