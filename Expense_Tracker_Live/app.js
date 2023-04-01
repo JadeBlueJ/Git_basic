@@ -14,7 +14,7 @@ app.use(cors())
 
 // app.set('view engine', 'ejs');
 // app.set('views', 'views');
-const signupRoutes  = require('./routes/signup');
+const signupRoutes  = require('./routes/admin');
 
 app.use(bodyParser.json({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));

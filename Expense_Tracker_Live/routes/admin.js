@@ -3,10 +3,13 @@ const path = require('path');
 const express = require('express');
 
 const signupController = require('../controllers/signup');
+const loginController = require('../controllers/login')
 
 const router = express.Router();
 
 router.post('/user/signup',signupController.postUser)
+
+router.post('/user/login',loginController.checkUser)
 
 // router.get('/user/signup',signupController.getUser)
 

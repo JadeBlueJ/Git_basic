@@ -42,10 +42,10 @@
           <div class="col-md-6">
             <div class="card">
               <div class="card-body">
-                <form class="form-signin" method="POST" onsubmit="signup(e)">
+                <form class="form-signin" method="POST" onsubmit="login(event)">
                     <h1 class="h3 mb-3 font-weight-normal">Log In </h1>
-                    <label for="name_mail" class="visually-hidden">Username/Email</label>
-                    <input type="text" id="name_mail" name="name_mail" class="form-control" placeholder="Username/Email" required autofocus>
+                    <label for="mail" class="visually-hidden">Email</label>
+                    <input type="text" id="mail" name="mail" class="form-control" placeholder="Email" required autofocus>
                     <label for="password" class="visually-hidden">Password</label>
                     <input type="password" id="password" name="password" class="form-control" placeholder="Password" required>
                     <button class="btn btn-lg btn-primary btn-block" type="submit">Login</button>
@@ -55,7 +55,10 @@
       </div>
     </div>
   </div>
+  <div class="text-center">
+    <a href="signup.html">Dont have an account? Sign up</a>
+  </div> 
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-  <!--script src="./scripts/signup.js"></script>-->
+  <script src="./scripts/login.js"></script>
 </body>
 </html>
