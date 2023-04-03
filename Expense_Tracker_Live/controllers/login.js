@@ -16,7 +16,7 @@ exports.checkUser = async (req,res,next)=>{
             else
             {   
                 console.log('Passwords do not match')
-                return res.status(500).json({message:'Passwords do not match',success:false})
+                return res.status(401).json({message:'Passwords do not match',success:false})
             }
         }
     else 
