@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const bcrypt = require('bcrypt')
 
 exports.postUser = async (req,res,next)=>{
   try{
@@ -11,21 +12,17 @@ exports.postUser = async (req,res,next)=>{
       console.log(userExists)
       return res.status(400).json({ message: "Email already exists" });
     }
-  const data = await User.create({name:name, mail:mail, password:password})
-  console.log('Added')
-  return res.status(201).json({newUserDetail:data})
-  
+  bcrypt.hash(password,10, async (err,hashed)=>{
+    if(err) console.log(err)
+    const data = await User.create({name:name, mail:mail, password:hashed})
+    console.log('Added')
+    return res.status(201).json({newUserDetail:data,message:'New User created'})
+  }) 
   }
-  catch(e) 
+  catch(err) 
   {
       res.status(500).json({
-          error:e
+          message:err.message
       })
   }
 }
-
-// exports.getUsers = async(req,res,next)=>{
-
-//   const expenses = await User.findAll()
-//   res.json({allExp:expenses})
-// }

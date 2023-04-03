@@ -15,6 +15,7 @@ async function login(e)
         const response = await axios.post('http://localhost:3000/user/login',ob)
         if(response.status===201){
             window.location.href='./login.html'
+            alert('Login successful')
         }
         else {
                 throw new Error('Failed to login')
