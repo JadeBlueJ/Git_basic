@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const bcrypt = require('bcrypt')
 
+
 exports.postUser = async (req,res,next)=>{
   try{
   const name = req.body.name
@@ -26,3 +27,4 @@ exports.postUser = async (req,res,next)=>{
       })
   }
 }
+

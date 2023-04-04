@@ -2,6 +2,7 @@ const ul = document.querySelector('#users');
 let sum = 0;
 var priceval = document.getElementById('mod')
 priceval.innerHTML= `Rs. ${sum}`;
+const token = localStorage.getItem('token')
 
 function getval(event){
     alert("The form has been submitted");
@@ -15,7 +16,7 @@ let ob = {
     category
 };
 
-axios.post('http://localhost:3000/expense/add-expense',ob)
+axios.post('http://localhost:3000/expense/add-expense',ob,{headers:{"authorization":token}},)
 .then(val =>{
     // console.log(val)
     UIelement(val.data.newExpDetail)
@@ -29,14 +30,15 @@ axios.post('http://localhost:3000/expense/add-expense',ob)
 //var itemlist = document.querySelector('.users');
 window.addEventListener("load",(e)=>{
     e.preventDefault();
-axios.get('http://localhost:3000/expense/get-expense')
-.then(val=>{
 
-    val.data.allExp.forEach(item => {
-         UIelement(item);
-         
-    // });
-})
+    axios.get('http://localhost:3000/expense/get-expense',{headers:{"authorization":token}})
+    .then(val=>{
+
+        val.data.allExp.forEach(item => {
+            UIelement(item);
+            
+        // });
+    })
 })
 .catch(e=>console.log(e))
    
@@ -68,7 +70,7 @@ function UIelement(ob){
                 priceval.innerHTML= `Rs. ${sum}`
                 //Above code resolves the total sum variable
                 ul.removeChild(li);
-                axios.delete(`http://localhost:3000/expense/delete-expense/${ob.id}`)
+                axios.delete(`http://localhost:3000/expense/delete-expense/${ob.id}`,{headers:{"authorization":token}})
                 .then(val=>console.log(val.data))
             }
         }

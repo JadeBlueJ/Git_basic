@@ -16,6 +16,7 @@ async function login(e)
         if(response.status===201){
             alert('Login successful')
             window.location.href='./Expense_Tracker.html'
+            localStorage.setItem('token',response.data.token)
             
         }
         else {

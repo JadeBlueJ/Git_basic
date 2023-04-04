@@ -1,6 +1,6 @@
 const path = require('path');
-
 const express = require('express');
+
 const bodyParser = require('body-parser');
 const User = require('./models/User')
 const Expense = require('./models/Expense')
@@ -22,6 +22,10 @@ app.use(bodyParser.json({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(adminRoutes)
+
+
+User.hasMany(Expense)
+Expense.belongsTo(User)
 
 sequelize.sync().then(res=>{
     // console.log(res)
