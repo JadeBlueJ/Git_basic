@@ -4,6 +4,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const User = require('./models/User')
 const Expense = require('./models/Expense')
+const Order = require('./models/Order')
 const cors = require('cors')
 
 // const errorController = require('./controllers/error');
@@ -16,16 +17,21 @@ app.use(cors())
 // app.set('view engine', 'ejs');
 // app.set('views', 'views');
 const adminRoutes  = require('./routes/admin');
+const purchaseRoutes= require('./routes/purchase')
 
 
 app.use(bodyParser.json({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(adminRoutes)
+app.use(purchaseRoutes)
 
 
 User.hasMany(Expense)
 Expense.belongsTo(User)
+
+User.hasMany(Order)
+Order.belongsTo(User)
 
 sequelize.sync().then(res=>{
     // console.log(res)

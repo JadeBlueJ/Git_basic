@@ -9,6 +9,7 @@ const loginController = require('../controllers/login')
 const adminController = require('../controllers/admin');
 
 
+
 const router = express.Router();
 
 router.post('/user/signup',signupController.postUser)

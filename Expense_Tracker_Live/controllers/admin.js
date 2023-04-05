@@ -5,7 +5,6 @@ exports.postExpense = async (req,res,next)=>{
   const amount = req.body.amount
   const description = req.body.description
   const category = req.body.category
-  console.log('Inside postexp',req.user.id)
   const data = await Expense.create({amount:amount, description:description, category:category,userId:req.user.id})
   console.log('Added')
   return res.status(201).json({newExpDetail:data})
