@@ -4,6 +4,9 @@ var priceval = document.getElementById('mod')
 priceval.innerHTML= `Rs. ${sum}`;
 const token = localStorage.getItem('token')
 const rzpbtn = document.getElementById('rzpbtn')
+const leaderbtn= document.getElementById('leaderbtn')
+const leadercard= document.getElementById('leaderboard_card')
+const leaderlist = document.getElementById('leaderboard')
 
 function getval(event){
     alert("The form has been submitted");
@@ -42,16 +45,20 @@ window.addEventListener("load",async(e)=>{
 })
 .catch(e=>console.log(e))
      axios.get('http://localhost:3000/purchase/premiumStatus',{headers:{"authorization":token}}).then(response=>{
-    console.log(response)
+    // console.log(response)
     const isPremium = response.data.isPremium
-    if(isPremium) rzpbtn.remove()
+    if(isPremium) 
+    {
+        rzpbtn.innerHTML="Premium Member"
+        rzpbtn.classList="btn btn-info btn-lg shadow"
+        rzpbtn.onclick = null
+        leaderbtn.classList="btn btn-outline-primary btn-lg shadow text-bg-warning"
+    }
     })            
-
 })
 
 rzpbtn.onclick = async function (e){ 
     const response = await axios.get('http://localhost:3000/purchase/premiummembership',{headers:{"authorization":token}})
-    
     var options = {
         "key":response.data.key_id,
         "order_id":response.data.order.id,
@@ -61,32 +68,48 @@ rzpbtn.onclick = async function (e){
                 payment_id:response.razorpay_payment_id,
                 },{headers:{"authorization":token}})
             console.log(updateResponse.data)
-                
             alert('You are a premium user now')
-            rzpbtn.remove()
+            window.location.reload()
+            // rzpbtn.innerHTML="Premium Member"
+            // rzpbtn.classList="btn btn-info btn-lg "
+            // rzpbtn.onclick = null
             }
 
     }
     const rzp1 = new Razorpay(options)
     rzp1.open();
     e.preventDefault();
-    
     rzp1.on('payment failed', function (response){
         console.log(response)
         alert('Something went wrong')
     })
+}
+
+leaderbtn.onclick = async function (e){ 
+
+    leadercard.classList="card border-info rounded-5 p-1 m-1 border-4 px-4 py-4"
+    const response = await axios.get('http://localhost:3000/premium/getLeaderboard',{headers:{"authorization":token}})
+    // console.log(response)
+    response.data.forEach(entry=>{
+        ldb(entry)
+    })
+
 
 }
 
- 
-
+function ldb(ob)
+{
+    var li=document.createElement('li');
+    li.appendChild(document.createTextNode(`Total expense: ${ob.totalExpense} , User Name:  ${ob.user.name}`) );
+    li.id=ob.userid;
+    leaderlist.appendChild(li);
+}
 
 
 function UIelement(ob){
-
         var li=document.createElement('li');
         li.appendChild(document.createTextNode(`${ob.amount} : ${ob.category} : ${ob.description}`) );
-        // li.id=ob.id;
+        li.id=ob.id;
         //console.log(li);
         sum+=parseInt(ob.amount)
          priceval.innerHTML= `Rs. ${sum}`
@@ -110,24 +133,7 @@ function UIelement(ob){
         }
         );
 
-        // var editele = document.createElement('button');
-        // editele.className='btn btn-secondary btn-sm m-1 float-right'
-        // editele.appendChild(document.createTextNode('Edit'));
-        // editele.onclick=()=>{
-        //     sum-=parseInt(ob.amount)
-        //     priceval.innerHTML= `Rs. ${sum}`
-
-        //     axios.delete(`http://localhost:3000/expense/delete-expense/${ob.id}`)
-        //         .then(val=>console.log(val.data))
-        //     document.getElementById('amount').value = ob.amount;
-        //     document.getElementById('descr').value = ob.description;
-        //     document.getElementById('category').value = ob.category;
-        //     ul.removeChild(li)
-
-        // }
-
         li.appendChild(newele);
-        // li.appendChild(editele);
         ul.appendChild(li);
 }
 

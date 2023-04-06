@@ -12,7 +12,8 @@ exports.checkUser = async (req,res,next)=>{
             bcrypt.compare(password, user.password,(err,result)=>{
             if(!err && result)
             {                   
-                    console.log('You are now logged in')
+                    console.log('You are now logged in, user details:',user.id,user.name)
+
                     return res.status(201).json({message:'User logged in successfully',success:true,token:generateAccessToken(user.id,user.name)})
             }
             else
