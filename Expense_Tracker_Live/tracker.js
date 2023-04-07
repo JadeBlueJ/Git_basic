@@ -127,6 +127,7 @@ function UIelement(ob){
                 ul.removeChild(li);
                 axios.delete(`http://localhost:3000/expense/delete-expense/${ob.id}`,{headers:{"authorization":token}})
                 .then(val=>console.log(val.data))
+                document.location.reload()
             }
         }
         );
