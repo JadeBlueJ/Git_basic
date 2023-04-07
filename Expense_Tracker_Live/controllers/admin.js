@@ -1,4 +1,5 @@
 const Expense = require('../models/Expense');
+const User = require('../models/User')
 
 exports.postExpense = async (req,res,next)=>{
   try{
@@ -7,6 +8,10 @@ exports.postExpense = async (req,res,next)=>{
   const category = req.body.category
   const data = await Expense.create({amount:amount, description:description, category:category,userId:req.user.id})
   console.log('Added')
+  const user = await User.findByPk(req.user.id)
+  if(!user.totalExp==null) user.totalExp =0.0
+  else user.totalExp+=parseFloat(amount)
+  await user.save()
   return res.status(201).json({newExpDetail:data})
 
   }

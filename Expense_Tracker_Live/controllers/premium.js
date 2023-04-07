@@ -1,17 +1,15 @@
-const Razorpay = require('razorpay')
 const Expense = require('../models/Expense')
 const User= require('../models/User')
 const Sequelize = require('sequelize')
 exports.getBoard = async (req, res, next) => {
     try {
-      const topUsers = await Expense.findAll({
+      const topUsers = await User.findAll({
         attributes: [
-          'userid',
-          [Sequelize.fn('sum', Sequelize.col('amount')), 'totalExpense'],
+          'name',
+          'totalExp',
         ],
-        group: ['userid'],
-        include: [{ model: User, attributes: ['name'] }],
-        order: [[Sequelize.literal('totalExpense'), 'DESC']],
+        // group: ['name'],
+        order: [['totalExp', 'DESC']],
         limit: 10,
       });
       res.status(201).json(topUsers);

@@ -89,18 +89,16 @@ leaderbtn.onclick = async function (e){
 
     leadercard.classList="card border-info rounded-5 p-1 m-1 border-4 px-4 py-4"
     const response = await axios.get('http://localhost:3000/premium/getLeaderboard',{headers:{"authorization":token}})
-    // console.log(response)
+    console.log(response)
     response.data.forEach(entry=>{
         ldb(entry)
     })
-
-
 }
 
 function ldb(ob)
 {
     var li=document.createElement('li');
-    li.appendChild(document.createTextNode(`Total expense: ${ob.totalExpense} , User Name:  ${ob.user.name}`) );
+    li.appendChild(document.createTextNode(`Total expense: ${ob.totalExp} , User Name:  ${ob.name}`) );
     li.id=ob.userid;
     leaderlist.appendChild(li);
 }
