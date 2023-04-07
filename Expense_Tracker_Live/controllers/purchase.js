@@ -60,7 +60,7 @@ exports.premiumStatus = async(req,res,next)=>{
         }
         else 
         {
-            return res.status(400).json({isPremium:false})
+            return res.status(201).json({isPremium:false})
         }
     }
     catch(err)
