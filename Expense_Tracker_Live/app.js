@@ -19,6 +19,7 @@ app.use(cors())
 const adminRoutes  = require('./routes/admin');
 const purchaseRoutes= require('./routes/purchase')
 const premiumRoutes= require('./routes/premium')
+const pwdRoutes= require('./routes/forgot')
 
 
 app.use(bodyParser.json({ extended: false }));
@@ -27,6 +28,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(adminRoutes)
 app.use(purchaseRoutes)
 app.use(premiumRoutes)
+app.use(pwdRoutes)
 
 
 User.hasMany(Expense)
