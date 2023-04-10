@@ -1,16 +1,19 @@
 const path = require('path');
 const express = require('express');
+const app = express();
+
 
 const bodyParser = require('body-parser');
 const User = require('./models/User')
 const Expense = require('./models/Expense')
 const Order = require('./models/Order')
+const Forgotpwd= require('./models/Forgotpwd')
 const cors = require('cors')
 
 // const errorController = require('./controllers/error');
 const sequelize =require('./util/database')
 
-const app = express();
+
 
 app.use(cors())
 
@@ -36,6 +39,9 @@ Expense.belongsTo(User)
 
 User.hasMany(Order)
 Order.belongsTo(User)
+
+User.hasMany(Forgotpwd)
+Forgotpwd.belongsTo(User)
 
 sequelize.sync().then(res=>{
     // console.log(res)

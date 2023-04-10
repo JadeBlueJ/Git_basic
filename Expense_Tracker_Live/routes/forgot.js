@@ -1,13 +1,14 @@
-const path = require('path');
-
-const auth = require('../middleware/auth')
-
 const express = require('express');
 
-const forgotController = require('../controllers/forgot');
+const resetpasswordController = require('../controllers/forgot');
+
 
 const router = express.Router();
 
-router.post('/password/forgotpassword/:mail',forgotController.forgotPwd)
+router.get('/password/updatepassword/:resetpasswordid', resetpasswordController.updatePwd)
 
-module.exports = router
+router.get('/password/resetpassword/:id', resetpasswordController.resetPwd)
+
+router.use('/password/forgotpassword', resetpasswordController.forgotPwd)
+
+module.exports = router;
