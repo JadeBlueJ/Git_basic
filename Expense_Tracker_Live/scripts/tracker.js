@@ -7,6 +7,9 @@ const rzpbtn = document.getElementById('rzpbtn')
 const leaderbtn= document.getElementById('leaderbtn')
 const leadercard= document.getElementById('leaderboard_card')
 const leaderlist = document.getElementById('leaderboard')
+const reportbtn = document.getElementById('reportbtn')
+const report_card = document.getElementById('report_card')
+const downbtn = document.getElementById('downbtn')
 
 function getval(event){
     alert("The form has been submitted");
@@ -53,6 +56,8 @@ window.addEventListener("load",async(e)=>{
         rzpbtn.classList="btn btn-info btn-lg shadow"
         rzpbtn.onclick = null
         leaderbtn.classList="btn btn-outline-primary btn-lg shadow text-bg-warning"
+        reportbtn.classList="btn btn-outline-primary btn-lg shadow text-bg-warning"
+        
     }
     })            
 })
@@ -84,6 +89,12 @@ rzpbtn.onclick = async function (e){
         alert('Something went wrong')
     })
 }
+reportbtn.addEventListener('click', () => {
+  // Your report generation code here
+    report_card.classList="card border-info rounded-5 p-1 m-1 border-4 px-4 py-4"
+    downbtn.classList="btn btn-outline-primary btn-lg shadow text-bg-warning"
+});
+
 
 leaderbtn.onclick = async function (e){ 
 
@@ -136,7 +147,25 @@ function UIelement(ob){
         ul.appendChild(li);
 }
 
+function download(){
+    axios.get('http://localhost:3000/user/download', { headers: {"Authorization" : token} })
+    .then((response) => {
+        if(response.status === 201){
+            //the bcakend is essentially sending a download link
+            //  which if we open in browser, the file would download
+            var a = document.createElement("a");
+            a.href = response.data.fileUrl;
+            a.download = 'myexpense.csv';
+            a.click();
+        } else {
+            throw new Error(response.data.message)
+        }
 
+    })
+    .catch((err) => {
+        showError(err)
+    });
+}
 
 
 

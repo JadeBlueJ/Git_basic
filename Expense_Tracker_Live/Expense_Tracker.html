@@ -15,11 +15,15 @@
 
     <div class="container d-flex justify-content-end">
         <div class="text-end mt-5 mb-3 p-2">
+            <a href="#" class="btn btn-success btn-lg shadow" id="rzpbtn">Buy Premium Membership</a>
+        </div>
+        <div class="text-end mt-5 mb-3 p-2">
             <a href="#" class="btn btn-outline-primary btn-lg shadow text-bg-warning visually-hidden" id="leaderbtn">Show LeaderBoard</a>
         </div>
         <div class="text-end mt-5 mb-3 p-2">
-            <a href="#" class="btn btn-success btn-lg shadow" id="rzpbtn">Buy Premium Membership</a>
+            <a href="#" class="btn btn-outline-primary btn-lg shadow text-bg-warning visually-hidden" id="reportbtn">Generate Report</a>
         </div>
+        
     </div>
     <div class="container d-flex justify-content-center">
         <div class="card border-warning rounded-5 p-1 m-1 border-4 px-4 py-4 " >
@@ -80,8 +84,40 @@
               </div>
             </div>
           </div>
-        
     </div>
+<br>
+<div class="container d-flex justify-content-center">
+    <div class="card border-info rounded-5 p-1 m-1 border-4 px-4 py-4 visually-hidden" id="report_card">
+        <div class="card-body">
+            <h2 class="card-title" style="text-align:center;width:100%">Report</h2><br>
+            <div class="form-group row">
+                <label for="date-filter" class="col-sm-2 col-form-label">Filter by:</label>
+                <div class="col-sm-10">
+                    <select class="form-control" id="date-filter">
+                        <option value="all">All Results</option>
+                        <option value="monthly">Monthly</option>
+                        <option value="yearly">Yearly</option>
+                    </select>
+                </div>
+            </div>
+            <hr size="10px">
+            <table class="table table-bordered" id="report-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Description</th>
+                        <th>Category</th>
+                        <th>Expense Amount</th>
+                    </tr>
+                </thead>
+                <tbody id="report"></tbody>
+            </table>
+        </div>
+    </div>
+    <div class="text-end mt-5 mb-3 p-2">
+        <a href="#" class="btn btn-outline-primary btn-lg shadow text-bg-warning visually-hidden" id="downbtn" onclick="download()">Download Report</a>
+    </div>
+</div>
     <br><br><br><br><br>
 <style>
         img {
