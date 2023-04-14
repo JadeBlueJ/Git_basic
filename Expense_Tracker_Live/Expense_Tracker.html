@@ -13,7 +13,7 @@
 </head>
 <body>
 
-    <div class="container d-flex justify-content-end">
+    <div class="container d-flex justify-content-end" id="top-elements">
         <div class="text-end mt-5 mb-3 p-2">
             <a href="#" class="btn btn-success btn-lg shadow" id="rzpbtn">Buy Premium Membership</a>
         </div>
@@ -25,8 +25,8 @@
         </div>
         
     </div>
-    <div class="container d-flex justify-content-center">
-        <div class="card border-warning rounded-5 p-1 m-1 border-4 px-4 py-4 " >
+    <div class="container d-flex justify-content-center" id="main-form">
+        <div class="card border-warning rounded-5 p-2 m-2 border-4 px-4 py-4 " >
             <div class="card-body">
                 <h2 class="card-title"style="text-align:center">Custom Expense Tracker</h2>
                 <p class="card-subtitle" style="text-align:center ">Track/Edit your financial details </p>
@@ -54,7 +54,7 @@
 
                             <br>
                             <div style="text-align:center;"> 
-                                <input type="submit"  class="btn btn-primary shadow " value="Track Expense" readonly/> <br><br>
+                                <input type="submit"  class="btn btn-primary shadow " value="Track Expense" /> <br><br>
                             </div>
                             
                         </form>
@@ -71,7 +71,18 @@
                 </div><br><br>
                 
                     <div class="card-text border-3">
-                        <ul id="users"></ul>
+
+                        <table id="usertable" class="table-bordered rounded">
+                            <thead>
+                              <tr>
+                                <th class="text-center">Amount</th>
+                                <th class="text-center">Description</th>
+                                <th class="text-center">Category</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                          </table>
                     </div>
             </div>
         </div>
@@ -80,13 +91,23 @@
               <h2 class="card-title" style="text-align:center;width:100%">Leaderboard</h2><br>
               <hr size="10px">               
               <div class="card-text border-3">
-                <ul id="leaderboard"></ul>
+
+                <table id="leadertable" class="table-bordered">
+                    <thead>
+                      <tr>
+                        <th class="text-center">Total Expense</th>
+                        <th class="text-center">Name</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                  </table>
               </div>
             </div>
           </div>
     </div>
 <br>
-<div class="container d-flex justify-content-center">
+<div class="container d-flex justify-content-center" id="report-cards">
     <div class="card border-info rounded-5 p-1 m-1 border-4 px-4 py-4 visually-hidden" id="report_card">
         <div class="card-body">
             <h2 class="card-title" style="text-align:center;width:100%">Report</h2><br>
@@ -110,13 +131,60 @@
                         <th>Expense Amount</th>
                     </tr>
                 </thead>
-                <tbody id="report"></tbody>
-            </table>
+            </table>            
         </div>
     </div>
-    <div class="text-end mt-5 mb-3 p-2">
-        <a href="#" class="btn btn-outline-primary btn-lg shadow text-bg-warning visually-hidden" id="downbtn" onclick="download()">Download Report</a>
+    <div class="card border-info rounded-5 p-1 m-1 border-4 px-4 py-4 visually-hidden" id="report_card_month">
+        <div class="card-body">
+            <h2 class="card-title" style="text-align:center;width:100%">Monthly Report</h2><br>
+            <div class="form-group row">
+                <label for="date-filter" class="col-sm-2 col-form-label">Filter by:</label>
+                <div class="col-sm-10">
+                    <select class="form-control" id="date-filter">
+                        <option value="all">All Results</option>
+                        <option value="monthly">Monthly</option>
+                        <option value="yearly">Yearly</option>
+                    </select>
+                </div>
+            </div>
+            <hr size="10px">
+            <table class="table table-bordered" id="report-table-month">
+            </table>            
+        </div>
     </div>
+    <div class="card border-info rounded-5 p-1 m-1 border-4 px-4 py-4 visually-hidden" id="report_card_year">
+        <div class="card-body">
+            <h2 class="card-title" style="text-align:center;width:100%">Yearly Report</h2><br>
+            <div class="form-group row">
+                <label for="date-filter" class="col-sm-2 col-form-label">Filter by:</label>
+                <div class="col-sm-10">
+                    <select class="form-control" id="date-filter">
+                        <option value="all">All Results</option>
+                        <option value="monthly">Monthly</option>
+                        <option value="yearly">Yearly</option>
+                    </select>
+                </div>
+            </div>
+            <hr size="10px">
+            <table class="table table-bordered" id="report-table-year">
+            <tbody></tbody>
+            </table>            
+        </div>
+    </div>
+</div>
+<div class="container d-flex justify-content-center" id="report-buttons">
+    <div class="text-end mt-5 mb-3 p-2">
+        <a class="btn btn-outline-primary btn-lg shadow text-bg-warning visually-hidden" id="downbtn" onclick="download()">Download Report</a>
+    </div>
+    <br>
+    <div class="text-end mt-5 mb-3 p-2">
+        <a class="btn btn-outline-primary btn-lg shadow text-bg-warning visually-hidden" id="reportbtn1">Generate Monthly Report</a>
+    </div>
+    <br>
+    <div class="text-end mt-5 mb-3 p-2">
+        <a class="btn btn-outline-primary btn-lg shadow text-bg-warning visually-hidden" id="reportbtn2">Generate Yearly Report</a>
+    </div>
+</div>
 </div>
     <br><br><br><br><br>
 <style>
@@ -132,9 +200,24 @@
         background-attachment: fixed;
         background-size: cover;
     }
+    .table-bordered {
+  border: 1px solid #0080ff;
+}
+.table-bordered th,
+.table-bordered td {
+  border: 1px solid #0080ff;
+}
+.table-center {
+  margin: 0 auto;
+}
+.table-center th,
+.table-center td {
+  text-align: center;
+}
 </style>
         
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="./scripts/tracker.js"></script>
+
 </body> 
 </html>

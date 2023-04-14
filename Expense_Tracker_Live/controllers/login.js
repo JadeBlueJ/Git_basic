@@ -14,7 +14,7 @@ exports.checkUser = async (req,res,next)=>{
             {                   
                     console.log('You are now logged in, user details:',user.id,user.name)
 
-                    return res.status(201).json({message:'User logged in successfully',success:true,token:generateAccessToken(user.id,user.name)})
+                    return res.status(201).json({message:'User logged in successfully',success:true,token:generateAccessToken(user.id,user.name),user:user})
             }
             else
             {   

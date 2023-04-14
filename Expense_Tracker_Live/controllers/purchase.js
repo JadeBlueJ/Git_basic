@@ -6,8 +6,8 @@ exports.purchasePremium = async(req,res,next)=>{
     try
     {
         var rzp = new Razorpay({
-            key_id : 'rzp_test_2p4hsJxuch1V7n',
-            key_secret : 'wTubXVYnRCr8wUwX2yjLIcIk'
+            key_id : 'rzp_test_31MgLqqP9jhZhS',
+            key_secret : 'xKhsqJLrVc0IxqwBLZcT4HLi'
         })
 
         const amount = 2500
@@ -37,7 +37,7 @@ exports.paymentHandler = async(req,res,next)=>{
         const prom1 = order.update({paymentid:payment_id,status:'SUCCESS'})
         const prom2 = req.user.update({isPremium:true})
         Promise.all([prom1,prom2]).then(()=>{
-            return res.status(200).json({success:true,message:'Txn successful',isPremium:true})
+            return res.status(200).json({success:true,message:'Txn successful',isPremium:true,user:req.user})
         })
         .catch(err=> {
             throw new Error(err)

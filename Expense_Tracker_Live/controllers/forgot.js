@@ -18,7 +18,6 @@ exports.forgotPwd = async (req,res,next)=>{
     const user = await User.findOne({where:{mail:mail}})
     if(user)
     {
-    // console.log(`a${mail}a` )
         try{
             const resetToken = await Forgotpwd.create({userId:user.id,isActive:true})
             
