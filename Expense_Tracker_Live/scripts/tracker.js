@@ -21,7 +21,25 @@ const reportbtn2 = document.getElementById('reportbtn2')
 const archive_card = document.getElementById('archive_card')
 const tableBody = document.querySelector('#usertable tbody');
 const ul=document.getElementById('archives')
-const itemsPerPage = 5;
+let itemsPerPage = 5;
+const itemsPerPageSelect = document.getElementById('items-per-page');
+const storedItemsPerPage = localStorage.getItem('itemsPerPage');
+if (storedItemsPerPage) {
+  itemsPerPageSelect.value = storedItemsPerPage;
+  itemsPerPage = parseInt(storedItemsPerPage);
+}
+
+itemsPerPageSelect.addEventListener('change', (event) => {
+    // Set the itemsPerPage variable and store it in localStorage
+    itemsPerPage = parseInt(event.target.value);
+    localStorage.setItem('itemsPerPage', event.target.value);
+    
+    // Refresh the pagination
+    // setupPagination(expenses);
+    // displayTableItems(expenses, currentPage);
+    window.location.reload()
+  });
+
 let currentPage = 1;
 
 function displayTableItems(items, page) {
