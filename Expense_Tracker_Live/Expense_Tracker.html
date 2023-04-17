@@ -51,17 +51,15 @@
                                 <option value = "Medical">Medical</option>
                                 <option value = "Misc">Miscellaneous</option>
                             </select>
-
                             <br>
                             <div style="text-align:center;"> 
                                 <input type="submit"  class="btn btn-primary shadow " value="Track Expense" /> <br><br>
                             </div>
-                            
                         </form>
                     </div>
             </div>
         </div>
-        <div class="card border-info rounded-5 p-1 m-1 border-4 px-4 py-4 " >
+        <div class="card border-info rounded-5 p-1 m-1 border-4 px-4 py-4" id="expenses_card" >
             <div class="card-body">
                 <h2 class="card-title"style="text-align:center">Details</h2><br>
                 <hr size="10px">
@@ -69,9 +67,7 @@
                     <h4>Total Product Value:</h4>
                     <h5 id = "mod" ><p>Rs.</p></h5>
                 </div><br><br>
-                
                     <div class="card-text border-3">
-
                         <table id="usertable" class="table-bordered rounded">
                             <thead>
                               <tr>
@@ -83,6 +79,10 @@
                             <tbody>
                             </tbody>
                           </table>
+                          <br>
+                          <nav>
+                            <ul class="pagination"></ul>
+                          </nav>
                     </div>
             </div>
         </div>
@@ -111,16 +111,6 @@
     <div class="card border-info rounded-5 p-1 m-1 border-4 px-4 py-4 visually-hidden" id="report_card">
         <div class="card-body">
             <h2 class="card-title" style="text-align:center;width:100%">Report</h2><br>
-            <div class="form-group row">
-                <label for="date-filter" class="col-sm-2 col-form-label">Filter by:</label>
-                <div class="col-sm-10">
-                    <select class="form-control" id="date-filter">
-                        <option value="all">All Results</option>
-                        <option value="monthly">Monthly</option>
-                        <option value="yearly">Yearly</option>
-                    </select>
-                </div>
-            </div>
             <hr size="10px">
             <table class="table table-bordered" id="report-table">
                 <thead>
@@ -137,16 +127,6 @@
     <div class="card border-info rounded-5 p-1 m-1 border-4 px-4 py-4 visually-hidden" id="report_card_month">
         <div class="card-body">
             <h2 class="card-title" style="text-align:center;width:100%">Monthly Report</h2><br>
-            <div class="form-group row">
-                <label for="date-filter" class="col-sm-2 col-form-label">Filter by:</label>
-                <div class="col-sm-10">
-                    <select class="form-control" id="date-filter">
-                        <option value="all">All Results</option>
-                        <option value="monthly">Monthly</option>
-                        <option value="yearly">Yearly</option>
-                    </select>
-                </div>
-            </div>
             <hr size="10px">
             <table class="table table-bordered" id="report-table-month">
             </table>            
@@ -155,16 +135,6 @@
     <div class="card border-info rounded-5 p-1 m-1 border-4 px-4 py-4 visually-hidden" id="report_card_year">
         <div class="card-body">
             <h2 class="card-title" style="text-align:center;width:100%">Yearly Report</h2><br>
-            <div class="form-group row">
-                <label for="date-filter" class="col-sm-2 col-form-label">Filter by:</label>
-                <div class="col-sm-10">
-                    <select class="form-control" id="date-filter">
-                        <option value="all">All Results</option>
-                        <option value="monthly">Monthly</option>
-                        <option value="yearly">Yearly</option>
-                    </select>
-                </div>
-            </div>
             <hr size="10px">
             <table class="table table-bordered" id="report-table-year">
             <tbody></tbody>

@@ -44,7 +44,7 @@ exports.postExpense = async (req,res,next)=>{
   else user.totalExp+=parseFloat(amount)
   await user.save({ transaction: t })
   await t.commit()
-  return res.status(201).json({newExpDetail:data})
+  return res.status(201).json({newExpDetail:data,user:user})
 
   }
   catch(e) 
@@ -58,7 +58,7 @@ exports.postExpense = async (req,res,next)=>{
 exports.getExpense = async(req,res,next)=>{
           //or req.user.getExpenses()[from sql]
     await Expense.findAll({where:{userId:req.user.id}}).then(expenses=>{
-    return res.status(200).json({allExp:expenses, success:true})
+    return res.status(200).json({allExp:expenses, success:true,user:req.user})
   })
 
 }
@@ -91,11 +91,11 @@ exports.deleteExpense = async (req, res, next) => {
     await user.save({ transaction: t });
 
     await t.commit();
-    return res.status(200).json({ success: true, message: "Deleted Successfully" });
+    return res.status(200).json({ success: true, message: "Deleted Successfully" ,user:user});
   } catch (err) {
     await t.rollback();
     console.log(err);
-    return res.status(500).json({ success: false, message: "Failed" });
+    return res.status(500).json({ success: false, message: "Failed" ,user:user});
   }
 };
 

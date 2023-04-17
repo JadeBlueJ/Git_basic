@@ -1,6 +1,6 @@
-let sum = 0;
+let sum=0
 var priceval = document.getElementById('mod')
-priceval.innerHTML= `Rs. ${sum}`;
+priceval.innerHTML= `Rs. ${0}`;
 const token = localStorage.getItem('token')
 const rzpbtn = document.getElementById('rzpbtn')
 const leaderbtn= document.getElementById('leaderbtn')
@@ -19,42 +19,82 @@ const report_table_year = document.getElementById('report-table-year')
 const reportbtn1 = document.getElementById('reportbtn1')
 const reportbtn2 = document.getElementById('reportbtn2')
 const archive_card = document.getElementById('archive_card')
+const tableBody = document.querySelector('#usertable tbody');
 const ul=document.getElementById('archives')
+const itemsPerPage = 5;
+let currentPage = 1;
 
+function displayTableItems(items, page) {
+
+  tableBody.innerHTML = '';
+
+  const startIndex = (page - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const itemsToShow = items.slice(startIndex, endIndex);
+  itemsToShow.forEach((item) => {
+    UIelement(item);
+    // tableBody.appendChild(row);
+  });
+}
+
+function setupPagination(items) {
+  const paginationContainer = document.querySelector('.pagination');
+  paginationContainer.innerHTML = '';
+
+  const pageCount = Math.ceil(items.length / itemsPerPage);
+  for (let i = 1; i <= pageCount; i++) {
+    const li = document.createElement('li');
+    li.classList.add('page-item');
+    if (i === currentPage) {
+      li.classList.add('active');
+    }
+
+    const link = document.createElement('a');
+    link.classList.add('page-link');
+    link.setAttribute('href', '#');
+    link.innerText = i;
+    link.addEventListener('click', (event) => {
+      event.preventDefault();
+      currentPage = i;
+      displayTableItems(items, currentPage);
+      const activeLink = paginationContainer.querySelector('.active');
+      activeLink.classList.remove('active');
+      li.classList.add('active');
+    });
+
+    li.appendChild(link);
+    paginationContainer.appendChild(li);
+  }
+}
 
 function getval(event){
     alert("The form has been submitted");
     var amount = event.target.amt.value;
     var description = event.target.descr.value;
     var category = event.target.cat.value;
-   
-    let ob = {
-        amount,
-        description,
-        category
-    };
-
+    let ob = {amount,description,category};
     axios.post('http://localhost:3000/expense/add-expense',ob,{headers:{"authorization":token}})
     .then(val =>{
-        // console.log(val)
+        priceval.innerHTML= `Rs. ${val.data.user.totalExp}`
+        console.log(val.data.user)
         UIelement(val.data.newExpDetail)
-        sum+=parseInt(val.data.newExpDetail.amount)
-        priceval.innerHTML= `Rs. ${sum}`
     })
     .catch(err=>console.log(err));
 }
 
-
-//var itemlist = document.querySelector('.users');
-window.addEventListener("load",async(e)=>{
+window.addEventListener("DOMContentLoaded",async(e)=>{
     e.preventDefault();
 
     axios.get('http://localhost:3000/expense/get-expense',{headers:{"authorization":token}})
     .then(val=>{
-
-        val.data.allExp.forEach(item => {
-            UIelement(item);
-    })
+        const expenses = val.data.allExp;
+        priceval.innerHTML= `Rs. ${val.data.user.totalExp}`
+        // console.log(val.data.user)
+        setupPagination(expenses);
+        displayTableItems(expenses, currentPage);
+    //     val.data.allExp.forEach(item => {
+    //         UIelement(item);
+    // })
 
 })
 .catch(e=>console.log(e))
@@ -63,7 +103,7 @@ window.addEventListener("load",async(e)=>{
     const isPremium = response.data.isPremium
     if(isPremium) 
     {   
-        rzpbtn.innerHTML="Premium Member"
+        rzpbtn.innerHTML="Premium Membership Active"
         rzpbtn.classList="btn btn-info btn-lg shadow"
         rzpbtn.onclick = null
         leaderbtn.classList="btn btn-outline-primary btn-lg shadow text-bg-warning"
@@ -365,23 +405,20 @@ function UIelement(ob) {
   deleteButton.innerText = 'Delete';
   deleteButton.addEventListener('click', function() {
     if (confirm('delete me?')) {
-      sum -= parseInt(ob.amount);
-      priceval.innerHTML = `Rs. ${sum}`;
+    //   sum -= parseInt(ob.amount);
       axios.delete(`http://localhost:3000/expense/delete-expense/${ob.id}`, {headers:{"authorization":token}})
-        .then(val=>console.log(val.data));
-      document.location.reload();
+        .then(val=>{
+            // console.log(val.data)
+            row.remove()
+            priceval.innerHTML = `Rs. ${val.data.user.totalExp}`;
+        });
     }
   });
   deleteCell.appendChild(deleteButton);
   deleteCell.className = 'text-center';
   row.appendChild(deleteCell);
-
   // Append the row to the table
-  usertable.appendChild(row);
-
-  // Update the sum
-  sum += parseInt(ob.amount);
-  priceval.innerHTML = `Rs. ${sum}`;
+  tableBody.appendChild(row);
 }
 
 function down(){
