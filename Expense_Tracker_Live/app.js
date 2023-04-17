@@ -8,6 +8,7 @@ const User = require('./models/User')
 const Expense = require('./models/Expense')
 const Order = require('./models/Order')
 const Forgotpwd= require('./models/Forgotpwd')
+const DLArchive= require('./models/DLArchive')
 const cors = require('cors')
 
 // const errorController = require('./controllers/error');
@@ -42,6 +43,9 @@ Order.belongsTo(User)
 
 User.hasMany(Forgotpwd)
 Forgotpwd.belongsTo(User)
+
+User.hasMany(DLArchive)
+DLArchive.belongsTo(User)
 
 sequelize.sync().then(res=>{
     // console.log(res)

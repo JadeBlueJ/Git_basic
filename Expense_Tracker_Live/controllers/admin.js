@@ -1,8 +1,37 @@
 const Expense = require('../models/Expense');
 const User = require('../models/User')
+const DLArchive= require('../models/DLArchive')
 const sequelize = require('../util/database')
+const S3Services = require('../services/s3services')
+require('dotenv').config()
+const UserServices = require('../services/userservices')
+
+exports.getArchive=async(req,res,next)=>{
+  try{
+    const archives = await DLArchive.findAll({where:{userId:req.user.id}})
+    return res.status(200).json({allDl:archives,success:true})
+  }
+  catch(err){
+    console.log(err)
+    return res.status(500).json({allDl:'',success:false})
+  }
+}
 
 
+exports.downExpenses = async(req,res)=>{
+ try{
+    const expenses = await UserServices.getExpenses(req)
+    const stringifiedExp = JSON.stringify(expenses)
+    const filename=`Expense_${req.user.id}_${new Date()}.txt`
+    const fileUrl = await S3Services.uploadToS3(stringifiedExp,filename)
+    // console.log(fileUrl)
+    await DLArchive.create({fileUrl:fileUrl,userId:req.user.id})
+    res.status(201).json({fileUrl:fileUrl, success:true})
+ }
+ catch(err){
+  res.status(500).json({fileUrl:'', success:false,error:err})
+ }
+}
 
 exports.postExpense = async (req,res,next)=>{
   const t = await sequelize.transaction()

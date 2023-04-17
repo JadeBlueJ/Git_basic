@@ -1,4 +1,3 @@
-const ul = document.querySelector('#users');
 let sum = 0;
 var priceval = document.getElementById('mod')
 priceval.innerHTML= `Rs. ${sum}`;
@@ -19,6 +18,8 @@ const report_table_month = document.getElementById('report-table-month')
 const report_table_year = document.getElementById('report-table-year')
 const reportbtn1 = document.getElementById('reportbtn1')
 const reportbtn2 = document.getElementById('reportbtn2')
+const archive_card = document.getElementById('archive_card')
+const ul=document.getElementById('archives')
 
 
 function getval(event){
@@ -69,8 +70,26 @@ window.addEventListener("load",async(e)=>{
         reportbtn.classList="btn btn-outline-primary btn-lg shadow text-bg-warning"
         
     }
-    })            
+    })
+    axios.get('http://localhost:3000/user/archive',{headers:{"authorization":token}}).then(archives=>{
+        // console.log(archives)
+        archives.data.allDl.forEach(archive=>{
+            DL_List(archive)
+        })
+        })          
 })
+
+function DL_List(ob)
+{
+    var li = document.createElement('li')
+    var a = document.createElement('a');
+    li.id=ob.id
+    a.href = ob.fileUrl
+    a.textContent = a.href; // use the URL as the link text
+    li.appendChild(a);
+    li.appendChild(document.createTextNode(`; Creation date: ${ob.createdAt}`))
+    ul.appendChild(li);
+}
 
 rzpbtn.onclick = async function (e){ 
     const response = await axios.get('http://localhost:3000/purchase/premiummembership',{headers:{"authorization":token}})
@@ -108,6 +127,7 @@ reportbtn.addEventListener('click', async() => {
     downbtn.classList="btn btn-outline-primary btn-lg shadow text-bg-warning"
     reportbtn1.classList="btn btn-outline-primary btn-lg shadow text-bg-warning"
     reportbtn2.classList="btn btn-outline-primary btn-lg shadow text-bg-warning"
+    archive_card.classList="card border-info rounded-5 p-1 m-1 border-4 px-4 py-4"
     axios.get('http://localhost:3000/expense/get-expense',{headers:{"authorization":token}})
     .then(val=>{
 
@@ -287,41 +307,6 @@ function dailyReport(ob)
     report_table.appendChild(row);
   }
 
-  function monthlyReport(ob)
-{
-    // Create a new row element
-    var row = document.createElement('tr');
-    row.id=ob.id
-  
-    // Add cells for each property
-    var dateCell = document.createElement('td');
-    const date = new Date(ob.createdAt);
-    dateCell.className = 'text-center'
-    dateCell.innerText = date.toLocaleDateString('en-GB')
-    row.appendChild(dateCell);
-  
-    var descriptionCell = document.createElement('td');
-    descriptionCell.innerText = ob.description;
-    descriptionCell.className = 'text-center'
-    row.appendChild(descriptionCell);
-  
-    var categoryCell = document.createElement('td');
-    categoryCell.innerText = ob.category;
-    categoryCell.className = 'text-center'
-    row.appendChild(categoryCell);
-
-    var amountCell = document.createElement('td');
-    amountCell.innerText = ob.amount;
-    amountCell.className = 'text-center'
-    row.appendChild(amountCell); 
-    // Append the row to the table
-    report_table.appendChild(row);
-  }
-  
-
-  
-
-
 leaderbtn.onclick = async function (e){ 
 
     leadercard.classList="card border-info rounded-5 p-1 m-1 border-4 px-4 py-4"
@@ -400,7 +385,8 @@ function UIelement(ob) {
   priceval.innerHTML = `Rs. ${sum}`;
 }
 
-function download(){
+function down(){
+
     axios.get('http://localhost:3000/user/download', { headers: {"Authorization" : token} })
     .then((response) => {
         if(response.status === 201){
@@ -416,7 +402,7 @@ function download(){
 
     })
     .catch((err) => {
-        showError(err)
+        console.log(err)
     });
 }
 
