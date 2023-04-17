@@ -85,9 +85,8 @@ function DL_List(ob)
     var a = document.createElement('a');
     li.id=ob.id
     a.href = ob.fileUrl
-    a.textContent = a.href; // use the URL as the link text
+    a.textContent = ob.createdAt // use the URL as the link text
     li.appendChild(a);
-    li.appendChild(document.createTextNode(`; Creation date: ${ob.createdAt}`))
     ul.appendChild(li);
 }
 

@@ -8,7 +8,7 @@ const UserServices = require('../services/userservices')
 
 exports.getArchive=async(req,res,next)=>{
   try{
-    const archives = await DLArchive.findAll({where:{userId:req.user.id}})
+    const archives = await DLArchive.findAll({where:{userId:req.user.id},order: [['createdAt', 'DESC']]})
     return res.status(200).json({allDl:archives,success:true})
   }
   catch(err){
