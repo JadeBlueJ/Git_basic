@@ -33,10 +33,6 @@ itemsPerPageSelect.addEventListener('change', (event) => {
     // Set the itemsPerPage variable and store it in localStorage
     itemsPerPage = parseInt(event.target.value);
     localStorage.setItem('itemsPerPage', event.target.value);
-    
-    // Refresh the pagination
-    // setupPagination(expenses);
-    // displayTableItems(expenses, currentPage);
     window.location.reload()
   });
 

@@ -1,7 +1,7 @@
 const path = require('path');
 const express = require('express');
 const app = express();
-
+const fs =require('fs')
 
 const bodyParser = require('body-parser');
 const User = require('./models/User')
@@ -10,6 +10,9 @@ const Order = require('./models/Order')
 const Forgotpwd= require('./models/Forgotpwd')
 const DLArchive= require('./models/DLArchive')
 const cors = require('cors')
+const helmet = require("helmet");
+const morgan = require('morgan')
+
 
 // const errorController = require('./controllers/error');
 const sequelize =require('./util/database')
@@ -24,7 +27,10 @@ const adminRoutes  = require('./routes/admin');
 const purchaseRoutes= require('./routes/purchase')
 const premiumRoutes= require('./routes/premium')
 const pwdRoutes= require('./routes/forgot')
+const accessLogStream = fs.createWriteStream(path.join(__dirname,'access.log'),{flags:'a'})
 
+app.use(helmet());
+app.use(morgan('combined',{stream:accessLogStream}))
 
 app.use(bodyParser.json({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
@@ -33,6 +39,8 @@ app.use(adminRoutes)
 app.use(purchaseRoutes)
 app.use(premiumRoutes)
 app.use(pwdRoutes)
+
+
 
 
 User.hasMany(Expense)
@@ -49,7 +57,7 @@ DLArchive.belongsTo(User)
 
 sequelize.sync().then(res=>{
     // console.log(res)
-    app.listen(3000);
+    app.listen(process.env.PORT||3000);
 })
 .catch(e=>console.log(e))
 
