@@ -43,7 +43,7 @@ app.use(pwdRoutes)
 
 app.use((req,res)=>{
     const dynurl=req.url
-    res.sendFile(path.join(__dirname,`public/${dynurl}.html`))
+    res.sendFile(path.join(__dirname,`public/${dynurl}`))
 })
 
 
