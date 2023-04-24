@@ -23,7 +23,7 @@ exports.postUser = async (req,res,next)=>{
   catch(err) 
   {
       res.status(500).json({
-          message:err.message
+          message:err.message, success:false
       })
   }
 }
