@@ -21,6 +21,7 @@ const reportbtn2 = document.getElementById('reportbtn2')
 const archive_card = document.getElementById('archive_card')
 const tableBody = document.querySelector('#usertable tbody');
 const ul=document.getElementById('archives')
+
 let itemsPerPage = 5;
 const itemsPerPageSelect = document.getElementById('items-per-page');
 const storedItemsPerPage = localStorage.getItem('itemsPerPage');
@@ -28,6 +29,7 @@ if (storedItemsPerPage) {
   itemsPerPageSelect.value = storedItemsPerPage;
   itemsPerPage = parseInt(storedItemsPerPage);
 }
+
 
 itemsPerPageSelect.addEventListener('change', (event) => {
     // Set the itemsPerPage variable and store it in localStorage
@@ -139,7 +141,7 @@ function DL_List(ob)
     var a = document.createElement('a');
     li.id=ob.id
     a.href = ob.fileUrl
-    a.textContent = ob.createdAt // use the URL as the link text
+    a.textContent = ob.createdAt 
     li.appendChild(a);
     ul.appendChild(li);
 }
@@ -267,7 +269,6 @@ reportbtn1.addEventListener('click', async() => {
     
             // Add the table to the page
             report_card_month.appendChild(table);
-
         }
         });
     });
@@ -323,7 +324,6 @@ reportbtn2.addEventListener('click', async() => {
     
             table.appendChild(row);
         }
-    
         // Add the table to the page
         report_card_year.appendChild(table);
         });
