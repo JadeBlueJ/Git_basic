@@ -5,7 +5,7 @@ async function login(e)
     {
         e.preventDefault();
 
-        const mail = e.target.mail.value
+        const mail = e.target.email.value
         const password = e.target.password.value
         const ob = {
             mail:mail,
@@ -16,12 +16,12 @@ async function login(e)
         if(response.status===201){
             alert('Login successful')
             localStorage.setItem('token',response.data.token)
-            alert('Token set')
+            // alert('Token set')
             localStorage.setItem('userDetails',JSON.stringify(response.data.user))
-            alert('user set')
-            const userDetails = (localStorage.getItem('userDetails'));
-            console.log(userDetails)
-            window.location.href='./Expense_Tracker.html'
+            // alert('user set')
+            // const userDetails = (localStorage.getItem('userDetails'));
+            // console.log(userDetails)
+            // window.location.href='./Expense_Tracker.html'
         }
         else {
                 throw new Error('Failed to login')
