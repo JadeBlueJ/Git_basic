@@ -6,4 +6,4 @@ node_modules
 Group_Chat_Live/.env
 Group_Chat_Live/*.log
 Group_Chat_Live/*.env
-Group_Chat_Live//node_modules
+Group_Chat_Live/node_modules
