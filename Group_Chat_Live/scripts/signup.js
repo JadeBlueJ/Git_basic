@@ -5,8 +5,9 @@ async function signup(e)
 
 
         let ob={
-            name : e.target.name.value,
-            mail : e.target.mail.value,
+            name : e.target.fname.value,
+            mail : e.target.email.value,
+            phone : e.target.phone.value,
             password : e.target.password.value
         }
 
@@ -14,7 +15,7 @@ async function signup(e)
 
         const response = await axios.post('http://localhost:3000/user/signup',ob)
         if(response.status===201){
-            window.location.href='./login.html'
+            // window.location.href='./login.html'
             alert('Sign up successful')
         }
         else {

@@ -6,6 +6,7 @@ exports.postUser = async (req,res,next)=>{
   try{
   const name = req.body.name
   const mail = req.body.mail
+  const phone =req.body.phone
   const password = req.body.password
 
   let userExists = await User.findOne({where:{ mail: mail }});
@@ -15,7 +16,7 @@ exports.postUser = async (req,res,next)=>{
     }
   bcrypt.hash(password,10, async (err,hashed)=>{
     if(err) console.log(err)
-    const data = await User.create({name:name, mail:mail, password:hashed})
+    const data = await User.create({name:name, mail:mail,phone:phone, password:hashed})
     console.log('Added')
     return res.status(201).json({newUserDetail:data,message:'New User created'})
   }) 

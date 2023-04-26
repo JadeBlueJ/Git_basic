@@ -28,10 +28,10 @@ const adminRoutes  = require('./routes/admin');
 // const purchaseRoutes= require('./routes/purchase')
 // const premiumRoutes= require('./routes/premium')
 // const pwdRoutes= require('./routes/forgot')
-const accessLogStream = fs.createWriteStream(path.join(__dirname,'access.log'),{flags:'a'})
+// const accessLogStream = fs.createWriteStream(path.join(__dirname,'access.log'),{flags:'a'})
 
 app.use(helmet());
-app.use(morgan('combined',{stream:accessLogStream}))
+// app.use(morgan('combined',{stream:accessLogStream}))
 
 app.use(bodyParser.json({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
@@ -41,10 +41,10 @@ app.use(adminRoutes)
 // app.use(premiumRoutes)
 // app.use(pwdRoutes)
 
-app.use((req,res)=>{
-    const dynurl=req.url
-    res.sendFile(path.join(__dirname,`public/${dynurl}`))
-})
+// app.use((req,res)=>{
+//     const dynurl=req.url
+//     res.sendFile(path.join(__dirname,`public/${dynurl}`))
+// })
 
 
 
@@ -61,7 +61,7 @@ app.use((req,res)=>{
 // User.hasMany(DLArchive)
 // DLArchive.belongsTo(User)
 
-sequelize.sync().then(res=>{
+sequelize.sync({force:true}).then(res=>{
     // console.log(res)
     app.listen(process.env.PORT||3000);
 })
