@@ -22,13 +22,6 @@ const archive_card = document.getElementById('archive_card')
 const tableBody = document.querySelector('#usertable tbody');
 const ul=document.getElementById('archives')
 
-const userDetails = localStorage.getItem('token')
-if(!userDetails)
-{   
-    alert("Please login/Signup first!")
-    window.location.href='../public/login.html'
-}
-
 let itemsPerPage = 5;
 const itemsPerPageSelect = document.getElementById('items-per-page');
 const storedItemsPerPage = localStorage.getItem('itemsPerPage');
@@ -88,15 +81,6 @@ function setupPagination(items) {
     li.appendChild(link);
     paginationContainer.appendChild(li);
   }
-}
-
-function logout(e)
-{   e.preventDefault()
-    localStorage.removeItem('token')
-    localStorage.removeItem('userDetails')
-    // alert("Logged out successfully")
-    window.location.href='../public/login.html'
-    document.body.innerHTML+='<div style = "color:red">Logged Out successfully</div>'
 }
 
 function getval(event){
