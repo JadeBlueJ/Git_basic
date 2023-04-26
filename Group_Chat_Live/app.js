@@ -20,7 +20,9 @@ const sequelize =require('./util/database')
 
 
 
-app.use(cors())
+app.use(cors({
+    origin:"*"
+}))
 
 // app.set('view engine', 'ejs');
 // app.set('views', 'views');
@@ -61,7 +63,7 @@ app.use(adminRoutes)
 // User.hasMany(DLArchive)
 // DLArchive.belongsTo(User)
 
-sequelize.sync({force:true}).then(res=>{
+sequelize.sync().then(res=>{
     // console.log(res)
     app.listen(process.env.PORT||3000);
 })

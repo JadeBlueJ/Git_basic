@@ -19,10 +19,12 @@ async function signup(e)
             alert('Sign up successful')
         }
         else {
+                
                 throw new Error('Failed to login')
         }
     }
     catch(err) {
+        alert('User exists, please login')
         document.body.innerHTML+=`<div style = "color:red">${err}</div> `
     }
 

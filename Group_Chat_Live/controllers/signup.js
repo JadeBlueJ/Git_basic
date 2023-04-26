@@ -14,12 +14,14 @@ exports.postUser = async (req,res,next)=>{
       console.log(userExists)
       return res.status(400).json({ message: "Email already exists" });
     }
-  bcrypt.hash(password,10, async (err,hashed)=>{
-    if(err) console.log(err)
-    const data = await User.create({name:name, mail:mail,phone:phone, password:hashed})
-    console.log('Added')
-    return res.status(201).json({newUserDetail:data,message:'New User created'})
-  }) 
+    else{
+      bcrypt.hash(password,10, async (err,hashed)=>{
+        if(err) console.log(err)
+        const data = await User.create({name:name, mail:mail,phone:phone, password:hashed})
+        console.log('Added')
+        return res.status(201).json({newUserDetail:data,message:'New User created'})
+    }) 
+    }
   }
   catch(err) 
   {
