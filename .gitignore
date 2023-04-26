@@ -2,8 +2,8 @@ Expense_Tracker_Live/.env
 Expense_Tracker_Live/node_modules
 Expense_Tracker_Live/access.log
 TS_Basics/node_modules
-Group_Chat_Live/node_modules
+node_modules
 Group_Chat_Live/.env
-*.log
-*.env
-/node_modules
+Group_Chat_Live/*.log
+Group_Chat_Live/*.env
+Group_Chat_Live//node_modules
