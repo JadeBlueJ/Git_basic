@@ -7,3 +7,4 @@ Group_Chat_Live/.env
 Group_Chat_Live/access.log
 Group_Chat_Live/.env
 Group_Chat_Live/node_modules
+GroupChat/node_modules
