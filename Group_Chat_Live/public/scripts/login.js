@@ -15,13 +15,9 @@ async function login(e)
         const response = await axios.post('http://localhost:3000/user/login',ob)
         if(response.status===201){
             alert('Login successful')
-            localStorage.setItem('token',response.data.token)
-            // alert('Token set')
-            localStorage.setItem('userDetails',JSON.stringify(response.data.user))
-            // alert('user set')
-            // const userDetails = (localStorage.getItem('userDetails'));
-            // console.log(userDetails)
-            // window.location.href='./Expense_Tracker.html'
+            localStorage.setItem('true',true)
+            window.location.href = `../index.html`;
+            // axios.get(`http://localhost:3000/chat/${response.data.username}`)
         }
         else {
                 throw new Error('Failed to login')

@@ -4,20 +4,20 @@ const jwt = require('jsonwebtoken')
 
 exports.checkUser = async (req,res,next)=>{
   try{
-    const mail = req.body.mail
+    const email = req.body.email
     const password = req.body.password
-    const user = await User.findOne({where:{mail:mail}})    
+    const user = await User.findOne({where:{email:email}})    
 
     if(user){
             bcrypt.compare(password, user.password,(err,result)=>{
             if(!err && result)
             {                   
-                    console.log('You are now logged in, user details:',user.id,user.name)
+                    console.log('You are now logged in, user details:',user.id,user.fname)
                     return res.status(201).json({
                         message: 'User logged in successfully',
                         success: true,
-                        token: generateAccessToken(user.id, user.name),
-                        username: user.name
+                        token: generateAccessToken(user.id, user.fname),
+                        username: user.fname
                     })
             }
             else

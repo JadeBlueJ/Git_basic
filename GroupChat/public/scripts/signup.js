@@ -5,26 +5,25 @@ async function signup(e)
 
 
         let ob={
-            name : e.target.fname.value,
-            mail : e.target.email.value,
+            fname : e.target.fname.value,
+            email : e.target.email.value,
             phone : e.target.phone.value,
             password : e.target.password.value
         }
 
         console.log(ob)
 
-        const response = await axios.post('http://localhost:3000/user/signup',ob)
+        const response = await axios.post('http://localhost:3000/signup',ob)
         if(response.status===201){
-            // window.location.href='./login.html'
+            window.location.href='./login.html'
             alert('Sign up successful')
         }
-        else {
-                
-                throw new Error('Failed to login')
-        }
+        else alert('Email Already Exists')
+        
     }
     catch(err) {
-        alert('User exists, please login')
+
+        alert('Something went wrong')
         document.body.innerHTML+=`<div style = "color:red">${err}</div> `
     }
 

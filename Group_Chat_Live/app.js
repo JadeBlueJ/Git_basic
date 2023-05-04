@@ -1,72 +1,36 @@
-const path = require('path');
-const express = require('express');
+const express = require("express");
+const http = require("http");
+const socketio = require("socket.io");
+const path = require("path");
+
 const app = express();
-require('dotenv').config()
-const fs =require('fs')
+const server = http.createServer(app);
+const io = socketio(server);
 
-const bodyParser = require('body-parser');
-const User = require('./models/User')
-// const Expense = require('./models/Expense')
-// const Order = require('./models/Order')
-// const Forgotpwd= require('./models/Forgotpwd')
-// const DLArchive= require('./models/DLArchive')
-const cors = require('cors')
-const helmet = require("helmet");
-const morgan = require('morgan')
+// Set static folder
+app.use(express.static(path.join(__dirname, "public")));
 
+// Run when client connects
+io.on("connection", (socket) => {
+  console.log("New WS Connection...");
 
-// const errorController = require('./controllers/error');
-const sequelize =require('./util/database')
+  // Welcome current user
+  socket.emit("message", "Welcome to the chat!");
 
+  // Broadcast when a user connects
+  socket.broadcast.emit("message", "A user has joined the chat");
 
+  // Listen for chatMessage
+  socket.on("chatMessage", (message) => {
+    io.emit("message", message);
+  });
 
-app.use(cors({
-    origin:"*"
-}))
+  // Runs when client disconnects
+  socket.on("disconnect", () => {
+    io.emit("message", "A user has left the chat");
+  });
+});
 
-// app.set('view engine', 'ejs');
-// app.set('views', 'views');
-const adminRoutes  = require('./routes/admin');
-// const purchaseRoutes= require('./routes/purchase')
-// const premiumRoutes= require('./routes/premium')
-// const pwdRoutes= require('./routes/forgot')
-// const accessLogStream = fs.createWriteStream(path.join(__dirname,'access.log'),{flags:'a'})
+const PORT = process.env.PORT || 3000;
 
-app.use(helmet());
-// app.use(morgan('combined',{stream:accessLogStream}))
-
-app.use(bodyParser.json({ extended: false }));
-app.use(express.static(path.join(__dirname, 'public')));
-
-app.use(adminRoutes)
-// app.use(purchaseRoutes)
-// app.use(premiumRoutes)
-// app.use(pwdRoutes)
-
-// app.use((req,res)=>{
-//     const dynurl=req.url
-//     res.sendFile(path.join(__dirname,`public/${dynurl}`))
-// })
-
-
-
-
-// User.hasMany(Expense)
-// Expense.belongsTo(User)
-
-// User.hasMany(Order)
-// Order.belongsTo(User)
-
-// User.hasMany(Forgotpwd)
-// Forgotpwd.belongsTo(User)
-
-// User.hasMany(DLArchive)
-// DLArchive.belongsTo(User)
-
-sequelize.sync().then(res=>{
-    // console.log(res)
-    app.listen(process.env.PORT||3000);
-})
-.catch(e=>console.log(e))
-
-
+server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
