@@ -1,10 +1,18 @@
 let connectedUsers=[]
 let messages=[]
+let chat_messages
+
 const username = localStorage.getItem('user')
-const container = document.querySelector('.container')
+if(!username)
+{
+  alert('Logged out')
+  window.location.href='/login'
+}
+
 
 window.addEventListener("DOMContentLoaded",async(e)=>{
   e.preventDefault();
+  chat_messages = document.getElementById('chat-messages')
   getMsg()
 })
 
@@ -25,40 +33,19 @@ async function getMsg() {
     else
     {
       if(msg.user==username)
-      createSendDiv(`${msg.user}: ${msg.message}`)
-      else createRecDiv(`${msg.user}: ${msg.message}`)
+      createSendDiv(`${msg.message}`)
+      else createRecDiv(`${msg.message}`)
     }
   });
 }
 
 
-async function displayWelcomeMessages()
-{
-  const response = await axios.get('http://localhost:3000/connectedUsers')
-  // connectedUsers.push(...response.data.connectedUsers)
-}
-
-
-// async function displayWelcomeMessages() {
-//   await getUsers();
-//   connectedUsers.forEach((user,index) => {
-//     if (user != username && index>connectedUsers.indexOf(username)) {
-//         createRecDiv(`${user} has entered the chat`)
-//         createSendDiv(`You have entered the chat`)
-//     }
-
-//     else {
-//       createSendDiv(`You have entered the chat`)
-//     }
-//   });
-// }
-
 async function chatmsg(e)
 {
   e.preventDefault()
   const msg = e.target.message.value
-  createSendDiv(`${username}: ${msg}`)
- 
+  console.log(msg)
+  createSendDiv(msg)
   e.target.message.value = ""
   const response = await axios.post('http://localhost:3000/postMessage',{user:username,message:msg})
 }
@@ -66,24 +53,38 @@ async function chatmsg(e)
 
 function createSendDiv(data)
 {
-  var msg_ele = document.createElement('div');
-  msg_ele.classList = 'message sent';
-  msg_ele.innerText=data
-
-  var msg_box = document.createElement('div');
-  msg_box.classList = 'message-box';
-  msg_box.appendChild(msg_ele)
-  container.appendChild(msg_box) 
+  var new_msg = document.createElement('div');
+  new_msg.classList = 'message_sent';
+  
+  new_msg.innerHTML=`<p class="meta">You <span>${getCurrentTime()}</span></p>
+  <p class="text">${data}</p>`;
+  chat_messages.appendChild(new_msg) 
+  chat_messages.scrollTop = chat_messages.scrollHeight;
 }
 
 function createRecDiv(data)
 {
-  var msg_ele = document.createElement('div');
-  msg_ele.classList = 'message received';
-  msg_ele.innerText=data
-
-  var msg_box = document.createElement('div');
-  msg_box.classList = 'message-box';
-  msg_box.appendChild(msg_ele)
-  container.appendChild(msg_box) 
+  var new_msg = document.createElement('div');
+  new_msg.classList = 'message_rec';
+  new_msg.innerHTML=`<p class="meta">USER <span>${getCurrentTime()}</span></p>
+  <p class="text">${data}</p>`;
+  chat_messages.appendChild(new_msg) 
+  chat_messages.scrollTop = chat_messages.scrollHeight;
 }
+
+
+function getCurrentTime() {
+  const now = new Date();
+  const hours = now.getHours().toString().padStart(2, '0');
+  const minutes = now.getMinutes().toString().padStart(2, '0');
+  return `${hours}:${minutes}`;
+}
+
+function logout(e)
+{
+  e.preventDefault()
+  localStorage.removeItem('user')
+  alert('Logged out successfully')
+  window.location.href='login.html'
+}
+

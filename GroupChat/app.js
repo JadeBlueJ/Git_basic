@@ -6,6 +6,7 @@ const bodyParser = require('body-parser')
 const User = require('./models/User')
 const cors = require('cors')
 const adminRoutes = require('./routes/admin')
+
 // const login_routes = require('./routes/login')
 const sequelize =require('./util/database')
 
@@ -52,10 +53,11 @@ app.use(adminRoutes)
   
 app.post('/newConnection',(req,res,next)=>{
   const { username } = req.body;
-allMsg.push({user:username, message:`${username} has joined the chat`, isIntro:true})
+  allMsg.push({user:username, message:`${username} has joined the chat`, isIntro:true})
 // console.log(connectedUsers)
-return res.status(200).json({message:'Posted User'})
+  return res.status(200).json({message:'Posted User'})
 })
+
 
 app.post('/postMessage', (req, res, next) => {
   const { user, message } = req.body;
