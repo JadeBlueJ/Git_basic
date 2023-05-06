@@ -10,9 +10,9 @@
     @import url('https://fonts.googleapis.com/css?family=Roboto&display=swap');
 
     :root {
-    --dark-color-a: #667aff;
-    --dark-color-b: #7386ff;
-    --light-color: #e6e9ff;
+    --dark-color-a: #CD65A6;
+    --dark-color-b: #D52A95;
+    --light-color: #F9E1F0;
     --success-color: #5cb85c;
     --error-color: #d9534f;
     }
@@ -26,7 +26,7 @@
     body {
     font-family: 'Roboto', sans-serif;
     font-size: 16px;
-    background: var(--light-color);
+    background:#ffffff;
     margin: 20px;
     }
 
@@ -51,13 +51,13 @@
 
     .chat-container {
     max-width: 1100px;
-    background: #fff;
+    background: #e7ffee;
     margin: 30px auto;
     overflow: hidden;
     }
 
     .chat-header {
-    background: var(--dark-color-a);
+    background: #3EC16F;
     color: #fff;
     border-top-left-radius: 5px;
     border-top-right-radius: 5px;
@@ -73,7 +73,7 @@
     }
 
     .chat-sidebar {
-    background: var(--dark-color-b);
+    background: #65CD8C;
     color: #fff;
     padding: 20px 20px 60px;
     overflow-y: scroll;
@@ -98,6 +98,8 @@
     padding: 30px;
     max-height: 500px;
     overflow-y: scroll;
+    display: flex;
+  flex-direction: column-reverse;
     }
 
     .chat-messages .message_rec{
@@ -112,7 +114,9 @@
     margin-bottom: 15px;
     background-color: var(--dark-color-b);
     border-radius: 5px;
-
+    direction: rtl;
+    color: #ffffff;
+    
     }
 
     .chat-messages .message_rec .meta {
@@ -128,6 +132,7 @@
     color: var(--dark-color-b);
     opacity: 0.7;
     margin-bottom: 7px;
+    direction: rtl;
     }
 
     .chat-messages .message_rec .meta span {
@@ -135,12 +140,13 @@
     }
 
     .chat-messages .message_sent .meta span {
-    color: #777;
+    color: #e1e1e1;
+    direction: rtl;
     }
 
     .chat-form-container {
     padding: 20px 30px;
-    background-color: var(--dark-color-a);
+    background-color: #3EC16F;
     }
 
     .chat-form-container form {
@@ -170,12 +176,12 @@
 <body>
   <div class="chat-container">
     <header class="chat-header">
-      <h1><i class="fas fa-smile"></i> ChatCord</h1>
+      <h1><i class="fas fa-meteor"></i> Chat App</h1>
       <a class="btn" onclick="logout(event)" href="#">Log out</a>
     </header>
     <main class="chat-main">
       <div class="chat-sidebar">
-        <h3><i class="fas fa-comments"></i> Room Name:</h3>
+        <h3><i class="fas fa-warehouse "></i> Room Name:</h3>
         <h2 id="room-name">JavaScript</h2>
         <h3><i class="fas fa-users"></i> Users</h3>
         <ul id="users">
