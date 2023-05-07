@@ -10,12 +10,13 @@ const Message = require('./models/Message');
 // const login_routes = require('./routes/login')
 const sequelize =require('./util/database')
 const auth = require('./middleware/auth')
+const { Op } = require('sequelize');
 
 const app = express()
 app.use(cors())
-app.use(bodyParser.json())
+app.use(bodyParser.json()) 
 app.use(express.static(path.join(__dirname, '/public')));
-
+//Serve pages
 app.get('/styles.css', (req, res) => {
     res.set('Content-Type', 'text/css');
     res.sendFile(__dirname + '/public/css/styles.css');
@@ -29,7 +30,7 @@ app.get('/login', (req, res) => {
     res.sendFile(__dirname + '/public/login.html');
   });
 
-//login page
+//Singup+login page
 app.use(adminRoutes)
   
 app.post('/newConnection',auth.authenticate, async (req,res,next)=>{
@@ -51,17 +52,28 @@ app.post('/newConnection',auth.authenticate, async (req,res,next)=>{
 
 app.post('/postMessage',auth.authenticate, async (req, res, next) => {
   const { message } = req.body;
-  const data = await Message.create({username:req.user.fname, text:message, isIntro:false,userId:req.user.id}) // store the message in an array
-  console.log("New Entry Added: ",data); // log the array of messages
-  return res.status(200).json({ message: 'Posted Msg' });
+  const postMsg = await Message.create({username:req.user.fname, text:message, isIntro:false,userId:req.user.id}) // store the message in an array
+  console.log("New Entry Added: ",postMsg); // log the array of messages
+  return res.status(200).json({ message: 'Posted Msg',createdAt:postMsg.createdAt });
 });
 
-app.get('/getMessages', auth.authenticate, async (req, res, next) => {
+app.post('/getMessages', auth.authenticate, async (req, res, next) => {
+
   const allMsg = await Message.findAll({
     order: [['createdAt', 'DESC']]
-  });
- return res.status(200).json({allMsg})
+    });
+    return res.status(200).json({allMsg})
+   
 });
+
+app.post('/updateMessages', auth.authenticate, async(req,res,next) =>{
+  const { last_msg_time } = req.body
+    const updateMsg = await Message.findAll({
+      where:{createdAt: {[Op.gt]:last_msg_time}},
+      order: [['createdAt', 'DESC']]
+      });
+    return res.status(200).json({updateMsg})
+})
 
 // app.use((req,res,next)=>{
 //     res.status('404').send('<h1>Error 404: Page not Found</h1>')
@@ -69,7 +81,7 @@ app.get('/getMessages', auth.authenticate, async (req, res, next) => {
 User.hasMany(Message)
 Message.belongsTo(User)
 
-sequelize.sync().then(res=>{
+sequelize.sync({force:true}).then(res=>{
     // console.log(res)
     app.listen(process.env.PORT||3000);
 })
@@ -78,10 +90,18 @@ sequelize.sync().then(res=>{
 
 
 
+// const { last_msg_time } = req.body
+// console.log(last_msg_time)
+// if(last_msg_time==null)
 
 
-
-
+  // else{
+  //     const allMsg = await Message.findAll({
+  //     where:{createdAt: {[Op.gt]:last_msg_time}},
+  //     order: [['createdAt', 'DESC']]
+  //   });
+  //   return res.status(200).json({allMsg})
+  // }
 
 
 // // Here we read from the file and post the chat string and then wait for the next request from client
