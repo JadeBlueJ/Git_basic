@@ -52,9 +52,13 @@ app.post('/newConnection',auth.authenticate, async (req,res,next)=>{
 
 app.post('/postMessage',auth.authenticate, async (req, res, next) => {
   const { message } = req.body;
+  if( message.trim().length==0)
+  {
+    res.status(400).json({success:false, error: 'Null entry'})
+  }
   const postMsg = await Message.create({username:req.user.fname, text:message, isIntro:false,userId:req.user.id}) // store the message in an array
   console.log("New Entry Added: ",postMsg); // log the array of messages
-  return res.status(200).json({ message: 'Posted Msg',createdAt:postMsg.createdAt });
+  return res.status(200).json({ message: 'Posted Msg',createdAt:postMsg.createdAt,entry:postMsg });
 });
 
 app.post('/getMessages', auth.authenticate, async (req, res, next) => {
@@ -66,8 +70,9 @@ app.post('/getMessages', auth.authenticate, async (req, res, next) => {
    
 });
 
-app.post('/updateMessages', auth.authenticate, async(req,res,next) =>{
-  const { last_msg_time } = req.body
+app.post('/updateMessages/', auth.authenticate, async(req,res,next) =>{
+  const last_msg_time = req.body.last_msg_time
+  // console.log(last_msg_time)
     const updateMsg = await Message.findAll({
       where:{createdAt: {[Op.gt]:last_msg_time}},
       order: [['createdAt', 'DESC']]
@@ -81,7 +86,7 @@ app.post('/updateMessages', auth.authenticate, async(req,res,next) =>{
 User.hasMany(Message)
 Message.belongsTo(User)
 
-sequelize.sync({force:true}).then(res=>{
+sequelize.sync().then(res=>{
     // console.log(res)
     app.listen(process.env.PORT||3000);
 })
