@@ -82,27 +82,26 @@
 <body>
 	<div class="container">
 		<h1>Sign Up</h1>
-		<form action="#" method="post">
+		<form method="post" onsubmit="signup(event)">
 			<label for="fname"><b>First Name</b></label>
-			<input type="text" placeholder="Enter First Name" name="fname" required>
-
-			<label for="lname"><b>Last Name</b></label>
-			<input type="text" placeholder="Enter Last Name" name="lname" required>
+			<input type="text" placeholder="Enter First Name" name="name" required>
 
 			<label for="email"><b>Email</b></label>
-			<input type="email" placeholder="Enter Email" name="email" required>
+			<input type="email" placeholder="Enter Email" name="mail" required>
 
 			<label for="password"><b>Password</b></label>
 			<input type="password" placeholder="Enter Password" name="password" required>
-
-			<label for="psw-repeat"><b>Repeat Password</b></label>
-			<input type="password" placeholder="Repeat Password" name="psw-repeat" required>
 
 			<div class="clearfix">
 				<button type="submit">Sign Up</button>
 				<button type="button" class="cancelbtn">Cancel</button>
 			</div>
 		</form>
+		<div class="text-center">
+			<a href="login.html">Already have an account? Login</a>
+		  </div> 
+		  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+		  <script src="../scripts/signup.js"></script>
 	</div>
 </body>
 </html>
