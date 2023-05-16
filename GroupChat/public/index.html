@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script defer src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous" />
   <style>
     @import url('https://fonts.googleapis.com/css?family=Roboto&display=swap');
@@ -19,8 +18,8 @@
 
     * {
     box-sizing: border-box;
-    margin: 0;
-    padding: 0;
+    margin: 0px;
+    padding: 0px;
     }
 
     body {
@@ -31,7 +30,11 @@
     }
 
     ul {
-    list-style: none;
+    list-style:none;
+    }
+
+    li {
+    list-style:none;
     }
 
     a {
@@ -46,7 +49,80 @@
     border: 0;
     font-size: 17px;
     }
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0, 0, 0, 0.4);
+    }
 
+    .modal-content {
+      background-color: #fefefe;
+      margin: 20% auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 80%;
+      max-width: 400px; 
+    }
+
+
+    /* MODAL COMPONENT */
+    #searchInput {
+  /* Search input styles */
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+#searchResults {
+  /* Search results styles */
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+#searchResults li {
+  /* Search result item styles */
+  padding: 8px;
+  cursor: pointer;
+}
+
+#searchResults li:hover {
+  /* Search result item hover styles */
+  background-color: #f2f2f2;
+}
+
+#selectedUsers {
+  /* Selected users styles */
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+#selectedUsers li {
+  /* Selected user item styles */
+    display:flex;
+    align-items: center;
+    padding: 8px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-bottom: 4px;
+  }
+
+#selectedUsers li .deleteBtn {
+  /* Delete button styles */
+      margin-left: auto;
+      cursor: pointer;
+    }
     /* Chat Page */
 
     .chat-container {
@@ -61,11 +137,42 @@
     color: #fff;
     border-top-left-radius: 5px;
     border-top-right-radius: 5px;
-    padding: 15px;
+    padding: 20px;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex-direction: row;
     }
+
+    .chat-header .logo {
+    display: flex;
+    align-items: center;
+    }
+
+    .chat-header .logo h1 {
+    margin: 0;
+    }
+
+    .chat-header .buttons {
+    display: flex;
+    align-items: center;
+    }
+
+    .chat-header .btn {
+    cursor: pointer;
+    padding: 5px;
+    background: var(--light-color);
+    color: var(--dark-color-a);
+    border: 0;
+    font-size: 17px;
+    margin-left: 5px;
+    }
+
+    .chat-header .btn:first-child {
+    margin-left: 0;
+  }
+
+
 
     .chat-main {
     display: grid;
@@ -75,8 +182,47 @@
     .chat-sidebar {
     background: #65CD8C;
     color: #fff;
-    padding: 20px 20px 60px;
-    overflow-y: scroll;
+    padding: 10px 10px 30px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow-y: auto;
+    max-height: 500px;
+    margin:0;
+    overflow-x: hidden;
+
+    }
+    
+    .room-list {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      padding: 0;
+      margin: 0;
+      list-style: none;
+    }
+
+    .chat-sidebar ul {
+      list-style-type: none; /* Remove bullets */
+      padding: 0; /* Remove padding */
+      margin: 0; /* Remove margins */
+    }
+
+  .chat-sidebar ul li {
+    /* border: 1px solid #464646; Add a thin border to each list item */
+    border-radius: 6px;
+    margin:5px;
+    margin-top: -1px; /* Prevent double borders */
+    background-color: #9bffc1;
+    padding: 20px; /* Add some padding */
+    color:#464646;
+    display: block;
+    }
+
+    .chat-sidebar ul li:hover{
+      background-color: #ffb5fb;
+      color: black;
+      cursor:pointer;
     }
 
     .chat-sidebar h2 {
@@ -84,14 +230,12 @@
     background: rgba(0, 0, 0, 0.1);
     padding: 10px;
     margin-bottom: 20px;
+    
     }
 
     .chat-sidebar h3 {
     margin-bottom: 15px;
-    }
-
-    .chat-sidebar ul li {
-    padding: 10px 0;
+    margin-top:5px;
     }
 
     .chat-messages {
@@ -99,7 +243,7 @@
     max-height: 500px;
     overflow-y: scroll;
     display: flex;
-  flex-direction: column-reverse;
+    flex-direction: column-reverse;
     }
 
     .chat-messages .message_rec{
@@ -160,6 +304,21 @@
     flex: 1;
     }
 
+    .splash {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 10px;
+      padding: 8px;
+      background-color: #e0e0e0;
+      border-radius: 8px;
+    }
+
+  .splash-text {
+    font-size: 14px;
+    text-align: center;
+  }
+
 
     @media (max-width: 700px) {
     .chat-main {
@@ -174,22 +333,43 @@
   <title>ChatCord App</title>
 </head>
 <body>
+  <div id="modal" class="modal">
+    <form id="createGroupForm">
+      <div class="modal-content">
+        <h2>Create Room</h2>
+        <br>
+        <input id="roomNameInput" type="text" name="roomName" placeholder="Enter room name..." required />
+        <br>
+        <input id="searchInput" type="text" name="searchQuery" placeholder="Search users..." />
+        <ul id="searchResults">
+          <!-- Search results will be dynamically added here -->
+        </ul>
+        <p>Select Users:</p>
+        <ul id="selectedUsers">
+          <!-- Selected users will be dynamically added here -->
+        </ul>
+        <button type="submit">Create</button>
+        <button type="button" id="cancelBtn">Cancel</button>
+      </div>
+    </form>
+  </div>
   <div class="chat-container">
     <header class="chat-header">
-      <h1><i class="fas fa-meteor"></i> Chat App</h1>
-      <a class="btn" onclick="logout(event)" href="#">Log out</a>
+      <div class="logo">
+        <h1><i class="fas fa-meteor"></i> Chat App</h1>
+      </div>
+      <div class="buttons">
+        <a class="btn" onclick="" href="#" id="createGroupBtn"><i class="fas fa-users"></i></a>
+        <a class="btn" onclick="" href="#"><i class="fas fa-envelope"></i></a>
+        <a class="btn" onclick="logout(event)" href="#"><i class="fas fa-sign-out-alt"></i></a>
+      </div>
     </header>
+    
+    
     <main class="chat-main">
       <div class="chat-sidebar">
-        <h3><i class="fas fa-warehouse "></i> Room Name:</h3>
-        <h2 id="room-name">JavaScript</h2>
-        <h3><i class="fas fa-users"></i> Users</h3>
-        <ul id="users">
-          <li>Brad</li>
-          <li>John</li>
-          <li>Mary</li>
-          <li>Paul</li>
-          <li>Mike</li>
+        <h3><i class="fas fa-warehouse "></i> Chats </h3>
+        <ul id="room-list">
         </ul>
       </div>
       <div class="chat-messages" id="chat-messages">
@@ -209,84 +389,6 @@
       </form>
     </div>
   </div>
-
-  <script src="scripts/chat.js"></script>
+  <script src="scripts/chat.js"></script>  
 </body>
-
 </html>
-
-
-<!-- <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <title>Chat App</title>
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        background-color: #f5f5f5;
-      }
-      .container {
-        width: 80%;
-        margin: 0 auto;
-      }
-      .message-box {
-        display: flex;
-        flex-direction: row;
-        margin: 10px;
-      }
-      .message-box .message {
-        padding: 10px;
-        border-radius: 10px;
-        max-width: 70%;
-        margin-left: 10px;
-      }
-      .message-box .sent {
-        background-color: #e6e6e6;
-        align-self: flex-end;
-        margin-left: auto;
-        margin-right: 10px;
-      }
-      .message-box .received {
-        background-color: #f2f2f2;
-        align-self: flex-start;
-        margin-right: auto;
-        margin-left: 10px;
-      }
-      .message-box input[type=text] {
-        width: 50%;
-        padding: 12px 20px;
-        margin: 8px 0;
-        box-sizing: border-box;
-        border: 2px solid #ccc;
-        border-radius: 4px;
-        resize: none;
-      }
-      .message-box button[type=submit] {
-        background-color: #4CAF50;
-        color: white;
-        padding: 12px 20px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        width: 10%;
-      }
-      .message-box button[type=submit]:hover {
-        background-color: #45a049;
-      }
-    </style>
-    <script defer src="scripts/chat.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-  </head>
-  <body>
-    <div class="container" id = "msg-card" name = "mcard">
-      <h1>Chat App</h1>
-     
-    </div>
-    <form class="message-box" onsubmit="chatmsg(event)">
-      <input type="text" id="message" name="message" placeholder="Type your message here...">
-      <hr>
-      <button type="submit">Send</button>
-    </form>
-  </body>
-</html> -->

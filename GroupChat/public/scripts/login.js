@@ -15,12 +15,14 @@ async function login(e)
         const response = await axios.post('http://localhost:3000/login',ob)
         if(response.status===201){
             const token = response.data.token
+            const user = response.data.user
             console.log(token)
             localStorage.setItem('token',token)
-            localStorage.setItem('user',response.data.username)
+            localStorage.setItem('user',JSON.stringify(user))
+            localStorage.setItem('username',response.data.username)
             alert('Login successful')
 
-            const resp = await axios.post('http://localhost:3000/newConnection',{}, {headers:{"authorization":token}})
+            // const resp = await axios.post('http://localhost:3000/newConnection',{userId:user.id}, {headers:{"authorization":token}})
             window.location.href = '../index.html';
 
 

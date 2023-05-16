@@ -17,7 +17,9 @@ exports.checkUser = async (req,res,next)=>{
                         message: 'User logged in successfully',
                         success: true,
                         token: generateAccessToken(user.id, user.fname),
-                        username: user.fname
+                        username:user.fname,
+                        user: user,
+
                     })
             }
             else

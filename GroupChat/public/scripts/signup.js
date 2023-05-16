@@ -15,10 +15,14 @@ async function signup(e)
 
         const response = await axios.post('http://localhost:3000/signup',ob)
         if(response.status===201){
-            window.location.href='./login.html'
+            e.target.fname.value=''
+            e.target.email.value=''
+            e.target.phone.value=''
+            e.target.password.value =''            
             alert('Sign up successful')
+            window.location.href='./login.html'
         }
-        else alert('Email Already Exists')
+        else if(response.status==200) alert('Email Already Exists')
         
     }
     catch(err) {
