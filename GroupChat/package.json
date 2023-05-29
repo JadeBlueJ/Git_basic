@@ -31,6 +31,9 @@
     "moment": "^2.29.4",
     "mysql2": "^3.2.4",
     "node-localstorage": "^2.2.1",
-    "sequelize": "^6.31.1"
+    "sequelize": "^6.31.1",
+    "socket.io": "^4.6.1",
+    "socket.io-client": "^4.6.1",
+    "uuid": "^9.0.0"
   }
 }

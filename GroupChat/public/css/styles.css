@@ -1,86 +1,88 @@
+.back-top {
+  background-color: #009688;
+  height: 15vh;
+}
 
+.back-main {
+  background-color: #D9DBD5;
+  height: 85vh;
+}
 
-.back-top{
-    background-color:  #009688;
-    height: 15vh;
-   }
-   
-   .back-main{
-    background-color:  #D9DBD5;
-    height: 85vh;
-   }
-   
-   .back-container{
-    position: relative;
-   }
-   
-   .front-container{
-    position: absolute;
-    top:0;
-    left:0;
-    right: 0;
-   }
-   .front-container1{
-    position: absolute;
-    top:20px;
-    left:0;
-    right: 0;
-   }
-   
-   .chat-top{
-    background-color: #EDEDED;
-    min-height: 50px;
-   }
-   
-   .profile-image{
-    margin-top: 7px;
-    height: 30px;
-    width: 30px;
-   }
-   
-   .contacts{
-    background-color: #ffffff;
-    min-height: 600px;
-   }
-   
-   .contact-table-scroll{
-    overflow-y: scroll;
-    height: 600px;
-   }
-   
-   .message-area{
-    background-color:  #e4e1de;
-    min-height: 600px;
+.back-container {
+  position: relative;
+}
 
-   }
-   
-   .message-table-scroll{
-    overflow-y: scroll;
-    height: 550px;
-   }
-   
-   .message-box{
-    background-color: #F0F0F0;
-   }
-   .row {
-       background-color: rgb(245, 236, 223);
-   }
-   #chat-messages {
-    max-width: 70%;
-    }
+.front-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+}
 
-    #chat-messages td p {
-    word-wrap: break-word;
-    hyphens: auto;
-    }
+.front-container1 {
+  position: absolute;
+  top: 20px;
+  left: 0;
+  right: 0;
+}
 
-    #chatBtn:hover {
-        cursor: pointer;
-      }
+.chat-top {
+  background-color: #EDEDED;
+  min-height: 50px;
+}
 
-      #searchResults li:hover {
-        cursor: pointer;
-      }
-      #searchAddResults li:hover {
-        cursor: pointer;
-      }
+.profile-image {
+  margin-top: 7px;
+  height: 30px;
+  width: 30px;
+}
+
+.contacts {
+  background-color: #ffffff;
+  min-height: 600px;
+}
+
+.contact-table-scroll {
+  overflow-y: scroll;
+  height: 600px;
+}
+
+.message-area {
+  background-color: #e4e1de;
+  min-height: 600px;
+
+}
+
+.message-table-scroll {
+  overflow-y: scroll;
+  height: 550px;
+}
+
+.message-box {
+  background-color: #F0F0F0;
+}
+
+.row {
+  background-color: rgb(245, 236, 223);
+}
+
+#chat-messages {
+  max-width: 70%;
+}
+
+#chat-messages td p {
+  word-wrap: break-word;
+  hyphens: auto;
+}
+
+#chatBtn:hover {
+  cursor: pointer;
+}
+
+#searchResults li:hover {
+  cursor: pointer;
+}
+
+#searchAddResults li:hover {
+  cursor: pointer;
+}

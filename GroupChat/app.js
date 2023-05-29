@@ -23,6 +23,36 @@ app.use(cors())
 app.use(bodyParser.json())
 app.use(express.static(path.join(__dirname, '/public')));
 
+const server = require('http').Server(app)
+
+const io = require('socket.io')(server); // Attach Socket.io to the server
+
+io.on('connection', (socket) => {
+  // Joining a private chat room
+  socket.on('joinPrivateChat', (roomId) => {
+    console.log('GC join: ',roomId)
+    socket.join(roomId);
+  });
+
+  // Joining a group chat room
+  socket.on('joinGroupChat', (roomId) => {
+    console.log('GC join: ',roomId)
+    socket.join(roomId);
+  });
+
+  // Handling message sent by a user
+  socket.on('sendMessage', (data) => {
+    console.log('Received a message from a client:', data);
+    const {  message, sendTime } = data;
+    const current_Room_ID=parseInt(data.current_Room_ID)
+  
+    // Broadcast the message to the corresponding room
+    socket.to(current_Room_ID).emit('newMessage', { message, roomId: current_Room_ID, time: sendTime });
+    console.log('emitted to room')
+  });
+  
+});
+
 //Serve pages
 app.get('/styles.css', (req, res) => {
   res.set('Content-Type', 'text/css');
@@ -71,12 +101,14 @@ app.get('/getUsers/:localUserId', async (req, res) => {
   }
 });
 
-//get Local user rooms
 app.get('/getUserRooms', auth.authenticate, async (req, res) => {
   try {
     const user = req.user; // Assuming `req.user` contains the authenticated user object
 
-    const rooms = await user.getRooms();
+    const rooms = await user.getRooms({
+      order: [['last_activity', 'DESC']]
+    });
+    // console.log(rooms)
     res.status(200).json({ success: true, rooms });
   } catch (error) {
     console.error('Error retrieving user rooms:', error);
@@ -84,12 +116,14 @@ app.get('/getUserRooms', auth.authenticate, async (req, res) => {
   }
 });
 
+
+
 //get all users in a room
 app.get('/getRoomUsers/:room_ID', async (req, res) => {
   try {
     const room_ID = req.params.room_ID;
     const roomUserIDs = await Room_User.findAll({
-      attributes: ['userId','isAdmin'],
+      attributes: ['userId', 'isAdmin'],
       where: {
         roomId: {
           [Op.eq]: room_ID,
@@ -101,9 +135,9 @@ app.get('/getRoomUsers/:room_ID', async (req, res) => {
       const user = await User.findByPk(roomUser.userId);
       return {
         id: user.id,
-        fname:user.fname,
-        email:user.email,
-        phone:user.phone,
+        fname: user.fname,
+        email: user.email,
+        phone: user.phone,
         isAdmin: roomUser.isAdmin
       };
     }));
@@ -126,31 +160,97 @@ app.post('/createRoom/:roomName', async (req, res) => {
   if (!selectedUserList || selectedUserList.length === 0) {
     return res.status(400).json({ success: false, message: 'No users selected' });
   }
+  else {
 
-  try {
-    const room = await Room.create({
-      name: roomName,
-      createdBy: selectedUserList[0].fname
-    });
-
-    const roomUserPromises = selectedUserList.map((user, index) => {
-      return Room_User.create({
-        userId: user.id,
-        roomId: room.id,
-        isAdmin: index === 0 // Set isAdmin to true only for the first user in the selectedUserList
+    try {
+      const room = await Room.create({
+        name: roomName,
+        createdBy: selectedUserList[0].fname,
+        isPrivate: false
       });
+
+      const roomUserPromises = selectedUserList.map((user, index) => {
+        return Room_User.create({
+          userId: user.id,
+          roomId: room.id,
+          isAdmin: index === 0 // Set isAdmin to true only for the first user in the selectedUserList
+        });
+      });
+
+
+      await Promise.all(roomUserPromises);
+
+      console.log('Room created');
+      //success response
+      return res.status(200).json({ success: true, message: 'Room successfully created', roomId: room.id });
+    }
+    catch (error) {
+      console.error('Error creating room:', error);
+      return res.status(500).json({ success: false, message: 'Error creating room' });
+    }
+  }
+
+});
+
+//Create pvt Room 
+app.post('/createPrivateRoom/:userID', auth.authenticate, async (req, res) => {
+
+  const { userID } = req.params
+  const localUser = req.user
+  if (!userID) {
+    return res.status(400).json({ success: false, message: 'No user selected' });
+  }
+  try {
+    const firstUser = await User.findOne({ where: { id: localUser.id } })
+    const secondUser = await User.findOne({ where: { id: userID } })
+    if (!secondUser || !firstUser) {
+      return res.status(404).json({ succes: false, message: 'Selected User not found' })
+    }
+
+    // Sort the user IDs
+    const userIds = [firstUser.id, secondUser.id].sort();
+    // Generate a unique room name based on sorted user IDs
+    const roomName = `Private_${userIds[0]}_${userIds[1]}`;
+    // Check if a private room already exists between the users
+    const existingRoom = await Room.findOne({
+      where: {
+        name: roomName,
+        isPrivate: true,
+      },
     });
+    if (existingRoom) {
+      // Private chat already exists
+      console.log('Private chat already exists:', existingRoom);
+      return res.status(201).json({ success: true, message: 'Private Room already exists', roomId: existingRoom.roomId });
+      // Return the existing chat or appropriate response
+    }
+    else {
+      // Create a new private chat
+      const room = await Room.create({
+        name: roomName,
+        createdBy: localUser.fname,
+        isPrivate: true,
+      });
 
+      const add1 = await Room_User.create({
+        userId: firstUser.id,
+        roomId: room.id,
+        isAdmin: false,
+      });
+      const add2 = await Room_User.create({
+        userId: secondUser.id,
+        roomId: room.id,
+        isAdmin: false,
+      });
 
-    await Promise.all(roomUserPromises);
-
-    console.log('Room created');
-    //success response
-    return res.status(200).json({ success: true, message: 'Room successfully created', roomId: room.id });
+      console.log('Private Room created');
+      // Success response
+      return res.status(200).json({ success: true, message: 'Private Room successfully created', roomId: room.id });
+    }
   }
   catch (error) {
-    console.error('Error creating room:', error);
-    return res.status(500).json({ success: false, message: 'Error creating room' });
+    console.error('Error creating private room:', error);
+    return res.status(500).json({ success: false, message: 'Error creating pvt room' });
   }
 });
 
@@ -175,24 +275,43 @@ app.post('/postMessage', auth.authenticate, async (req, res, next) => {
   if (message.trim().length == 0) {
     res.status(400).json({ success: false, error: 'Null entry' })
   }
+
   const postMsg = await Message.create({ username: req.user.fname, text: message, isIntro: false, userId: req.user.id, roomId: roomId }) // store the message in an array
-  console.log("New Entry Added: ", postMsg); // log the array of messages
+  console.log("New Entry Added: "); // log the array of messages
+
+  const room = await Room.findByPk(roomId);
+  room.last_activity = new Date();
+  room.last_message = message
+  await room.save();
+
+
   return res.status(200).json({ message: 'Posted Msg', createdAt: postMsg.createdAt, entry: postMsg });
 });
 
 //Get messages
 app.post('/getMessages', auth.authenticate, async (req, res, next) => {
-  const { roomId } = req.body
-  console.log(roomId)
-  if (roomId == undefined) {
-    return res.status(400).json({ message: 'Room ID invalid' })
+  const { roomId } = req.body;
+  console.log(roomId);
+  
+  if (roomId === undefined) {
+    return res.status(400).json({ message: 'Room ID invalid' });
   }
-  const allMsg = await Message.findAll({
-    where: { roomId: roomId },
-  });
-  return res.status(200).json({ allMsg })
-
+  
+  try {
+    const allMsg = await Message.findAll({
+      where: { roomId },
+      order: [['createdAt', 'DESC']],
+      limit: 10,
+    });
+    const reversedMsg = allMsg.reverse();
+    
+    return res.status(200).json({ allMsg:reversedMsg });
+  } catch (error) {
+    console.error('Error retrieving messages:', error);
+    return res.status(500).json({ message: 'Error retrieving messages' });
+  }
 });
+
 
 //Provide updated messages after last local message time for user. 
 app.post('/getUpdatedMessages/', auth.authenticate, async (req, res, next) => {
@@ -319,6 +438,30 @@ app.put('/admin/updateAdminStatus/:roomId/:userId', auth.authenticate, async (re
   }
 });
 
+//update activity status
+app.put('/updateRoom/:roomId', async (req, res) => {
+  const { roomId } = req.params;
+  const { updatedAt } = req.body;
+
+  try {
+    const room = await Room.findByPk(roomId);
+
+    if (!room) {
+      return res.status(404).json({ success: false, message: 'Room not found' });
+    }
+
+    // Update the updatedAt field
+    room.updatedAt = updatedAt;
+    await room.save();
+
+    return res.status(200).json({ success: true, message: 'Room updated successfully' });
+  } catch (error) {
+    console.error('Error updating room:', error);
+    return res.status(500).json({ success: false, message: 'Error updating room' });
+  }
+});
+
+
 //Error page
 app.use((req, res, next) => {
   res.status('404').send('<h1>Error 404: Page not Found</h1>')
@@ -332,14 +475,24 @@ User.hasMany(Message, { foreignKey: { name: 'userId', allowNull: false }, onDele
 Message.belongsTo(Room, { foreignKey: { name: 'roomId', allowNull: false }, onDelete: 'CASCADE' });
 Room.hasMany(Message, { foreignKey: { name: 'roomId', allowNull: false }, onDelete: 'CASCADE' });
 
-User.belongsToMany(Room, { through: Room_User });
-Room.belongsToMany(User, { through: Room_User });
+Room.belongsToMany(User, { through: Room_User, foreignKey: 'roomId' });
+User.belongsToMany(Room, { through: Room_User, foreignKey: 'userId' });
+
+// Define the afterCreate hook
+Message.afterCreate(async (message, options) => {
+  const roomId = message.roomId;
+
+  // Update the corresponding Room's updatedAt field
+  await Room.update({ updatedAt: message.createdAt }, { where: { id: roomId } });
+});
 
 //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-
+// {alter:true}
 sequelize.sync().then(res => {
   // console.log(res)
-  app.listen(process.env.PORT || 3000);
+  server.listen(process.env.PORT || 3000, () => {
+    console.log('Server is running on port 3000');
+  });
 })
   .catch(e => console.log(e))

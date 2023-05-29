@@ -7,6 +7,34 @@ const createGroupBtn = document.getElementById('createGroupBtn')
 const viewUsersBtn = document.getElementById('viewUsersBtn')
 const addUsersBtn = document.getElementById('addUsersBtn')
 const adminBtn = document.getElementById('adminBtn')
+const sendMsgBtn = document.getElementById("sendMsgBtn");
+const chatForm = document.getElementById('chat-form');// import io from 'socket.io-client'
+const chatBtn = document.getElementById('chatBtn');
+//Socket
+const socket = io('http://localhost:3000')
+
+socket.on('connect', () => {
+  console.log('connected socket, ID:', socket.id)
+})
+
+// Event listener for incoming messages
+socket.on('newMessage', async (data) => {
+  // Update the chat window with the new message
+  console.log('Inside sockets recevied msg', data)
+  // console.log('room:',roomId)
+  // console.log('time',time)
+  if (current_Room_ID == data.roomId) {
+    console.log('same room')
+    createRecDiv(data.message, data.time,'Name');
+    container.scrollTop = container.scrollHeight;
+    await getUserRooms()
+  }
+  else {
+    console.log('Message from another group')
+    await getUserRooms()
+  }
+});
+
 
 const username = localStorage.getItem('username')
 const localUser = JSON.parse(localStorage.getItem('user'))
@@ -18,67 +46,76 @@ const container = document.getElementById('main-chat');
 const existingUsersUl = document.getElementById('existingUsers')
 const adminStatusUl = document.getElementById('adminStatusUl')
 let existingUsersArray = []
+const sendPMBtn = document.getElementById('sendPMBtn');
 
-// Get the SVG element
-const svgElement = document.getElementById('chatBtn');
-
+//create group modal
 const searchInput = document.getElementById('searchInput');
 const searchResults = document.getElementById('searchResults');
 const selectedUsers = document.getElementById('selectedUsers');
 const closeBtn = document.getElementById('closeBtn');
 const cancelBtn = document.getElementById('cancelBtn');
 
+//add user to group modal
 const searchInput1 = document.getElementById('searchInput1');
 const searchAddResults = document.getElementById('searchAddResults');
 const selectedAddUsers = document.getElementById('selectedAddUsers');
 const closeBtn1 = document.getElementById('closeBtn1');
-// const cancelBtn1 = document.getElementById('cancelBtn1');
-const cancelBtn2 = document.getElementById('cancelBtn1');
+// const cancelBtn1 = document.getElementById('cancelBtn1'); 
+const cancelBtn2 = document.getElementById('cancelBtn2');
+const cancelBtn3 = document.getElementById('cancelBtn3');
+//   for PM modal
+const searchInput2 = document.getElementById('searchInput2');
+const searchResults2 = document.getElementById('searchResults2');
+const cancelBtn4 = document.getElementById('cancelBtn3');
+const closeBtn2 = document.getElementById('closeBtn2');
+const selectedUserUl = document.getElementById('selectedUser')
 
 
 let availableUsers = [] //for search person modal 
 let selectedUsersArray = []// for keeping the selected users of search modal
+let selectedUser = null; //for keeping selected PM user
 let selectedAddUsersArray = []  // for keeping the selected users of add users search modal
 
-window.addEventListener("load", async (e) => {
-  e.preventDefault();
-  getUserList() //Get the user List 
+window.addEventListener("load", async () => {
+  try {
+    await getUserList();
+    await getUserRooms();
 
-  getUserRooms() // get the local user's rooms and display it 
+    current_Room_ID = localStorage.getItem('current_Room_ID');
+    current_Room_Name = localStorage.getItem('current_Room_Name');
 
-  current_Room_ID = localStorage.getItem('current_Room_ID')
-  current_Room_Name = localStorage.getItem('current_Room_Name')
-
-  if (current_Room_ID == null || current_Room_Name == null) {
-    chat_messages.innerHTML = ''
-    createSplashDiv('Please select a conversation') //ask for chat selection
+    if (current_Room_ID == null || current_Room_Name == null) {
+      chat_messages.innerHTML = '';
+      createSplashDiv('Please select a conversation');
+    } else {
+      currentRoomSplash.innerHTML = `${current_Room_Name}`;
+      chat_messages.innerHTML = '';
+      getMsg(current_Room_ID);
+      getRoomUsers(current_Room_ID);
+      container.scrollTop = container.scrollHeight;
+    }
+  } catch (error) {
+    console.error('Error in window load event handler:', error);
   }
-  else {
-    currentRoomSplash.innerHTML = `${current_Room_Name}`
-    chat_messages.innerHTML = ``
-    getMsg(current_Room_ID)//get room msgs
+});
 
-    getRoomUsers(current_Room_ID) //get room specific  user list
+// if(localMsg==null)
+//   { 
+//     await getMsg()
+//   }
+// else
+//   {
+//     //use local files to populate index
+//     localMsg = localStorage.getItem('localMsg')
+//     parsedLocal = JSON.parse(localMsg)
+//     parsedLocal.forEach(msg => {
+//       arrayHandler(msg)
+//     });
+//     last_msg_time=parsedLocal[0].createdAt;
+//   }
 
-    container.scrollTop = container.scrollHeight;
-  }
-  // if(localMsg==null)
-  //   { 
-  //     await getMsg()
-  //   }
-  // else
-  //   {
-  //     //use local files to populate index
-  //     localMsg = localStorage.getItem('localMsg')
-  //     parsedLocal = JSON.parse(localMsg)
-  //     parsedLocal.forEach(msg => {
-  //       arrayHandler(msg)
-  //     });
-  //     last_msg_time=parsedLocal[0].createdAt;
-  //   }
-})
 
-// Example list of available users
+// Example list of all available users
 async function getUserList() {
   try {
     const response = await axios.get(`http://localhost:3000/getUsers/${localUser.id}`);
@@ -102,26 +139,95 @@ async function getUserRooms() {
     }
   })
   if (response.status == 200) {
-    // console.log(response.data.rooms)
     room_list_data = response.data.rooms
+    console.log('Room list data sorted by activity time:', room_list_data)
+
   }
   else console.log('Something went wrong: GetRooms')
 
   room_list_data.forEach(room => {
-    const tr = document.createElement('tr');
-    const td = document.createElement('td');
-    const roomName = document.createTextNode(room.name);
 
-    td.appendChild(roomName);
-    tr.appendChild(td);
-    tr.id = room.id
-    room_list.appendChild(tr);
+    if (!room.isPrivate) {
+      socket.emit('joinGroupChat', room.id);
+      const tr = document.createElement('tr');
+      const td1 = document.createElement('td');
+      const td2 = document.createElement('td');
 
-    tr.addEventListener('click', () => {
-      // Call your function here
-      currentRoomSplash.innerHTML = `${room.name}`
-      handleRoomClick(tr.id, room.name);
-    });
+      if (room.last_message != null) {
+        td1.innerHTML = `${room.name}<br><small>${room.last_message}</small><br>`;
+      }
+      else {
+        td1.innerHTML = `${room.name}`;
+      }
+      if (room.last_activity != null)
+        td2.innerHTML = `<small>${getTime(room.last_activity)}</small>`;
+      tr.appendChild(td1);
+      tr.appendChild(td2);
+
+
+      tr.id = room.id
+      room_list.appendChild(tr);
+
+      tr.addEventListener('click', () => {
+        // Call your function here
+
+        currentRoomSplash.innerHTML = `${room.name}`
+        //emit joining to a group here. 
+        
+        handleRoomClick(tr.id, room.name);
+      });
+
+    }
+    else {
+      socket.emit('joinPrivateChat', room.id);
+
+      const tr = document.createElement('tr');
+      const td1 = document.createElement('td');
+      const td2 = document.createElement('td');
+
+      const roomNameParts = room.name.split('_');
+      const userIds = roomNameParts.slice(1);
+
+
+      // Assuming you have the localUser variable containing the local user's ID
+      const localUserId = localUser.id;
+
+      let otherUserId;
+
+      // Find the user ID that is not the local user's ID
+      for (const userId of userIds) {
+        if (parseInt(userId) !== localUserId) {
+          otherUserId = parseInt(userId);
+          break;
+        }
+      }
+      const otherUser = availableUsers.find(user => user.id === otherUserId);
+      if (otherUser) {
+        const otherUserName = otherUser.fname;
+        // console.log('Other User Name:', otherUserName);
+        if (room.last_message != null) {
+          td1.innerHTML = `${otherUserName}<br><small>${room.last_message}</small><br>`;
+        }
+        else {
+          td1.innerHTML = `${otherUserName}`;
+        }
+        if (room.last_activity != null)
+          td2.innerHTML = `<small>${getTime(room.last_activity)}</small>`;
+        tr.appendChild(td1);
+        tr.appendChild(td2);
+
+        tr.id = room.id
+        room_list.appendChild(tr);
+
+        tr.addEventListener('click', () => {
+          // Call your function here
+          currentRoomSplash.innerHTML = `${otherUserName}`
+          //emit joining to a pvt chat here. 
+
+          handleRoomClick(tr.id, otherUserName);
+        });
+      }
+    }
   })
 }
 
@@ -134,7 +240,9 @@ async function getRoomUsers(room_ID) {
       }
     })
     if (response.status == 201) {
+      //clear modal UL 
       existingUsersUl.innerHTML = ''
+      adminStatusUl.innerHTML = ''
       existingUsersArray = response.data.roomUsers
 
       console.log('existing users array: ', existingUsersArray)
@@ -149,7 +257,7 @@ async function getRoomUsers(room_ID) {
         const deleteButton = document.createElement('button');
         deleteButton.type = 'button';
         const userExists = existingUsersArray.find(user => user.id === localUser.id);
-        if (userExists.isAdmin) {
+        if (userExists.isAdmin && user.id != localUser.id) {
           deleteButton.classList = 'btn-close float-end';
         }
         else {
@@ -191,14 +299,14 @@ async function getRoomUsers(room_ID) {
 
         existingUsersUl.appendChild(li);
       });
-      // Populate admin check array
+      // Populate admin check ul modal
       existingUsersArray.forEach(user => {
         const li = document.createElement('li');
         li.classList = "list-group-item";
         li.id = user.id;
 
         const adminCheckbox = document.createElement('input');
-        adminCheckbox.classList="float-end"
+        adminCheckbox.classList = "float-end"
         adminCheckbox.type = 'checkbox';
         adminCheckbox.checked = user.isAdmin;
         adminCheckbox.addEventListener('change', async () => {
@@ -206,7 +314,6 @@ async function getRoomUsers(room_ID) {
           await updateAdminStatus(room_ID, user.id, newAdminStatus);
           alert('Success')
           console.log('Admin status changed for user:', user.id);
-          // You can add further logic here if needed
         });
 
         li.innerHTML = `${user.fname} [${user.phone} ; ${user.email}]`;
@@ -255,7 +362,7 @@ async function handleRoomClick(roomId, roomName) {//clear message field
   //get all users of the room and add to modal
   await getRoomUsers(current_Room_ID)
 
-  //get messages corresponding to room =>add messages to the chat
+  //get messages corresponding to room =>add last 10 messages to the chat
   await getMsg(current_Room_ID)
   //get all users in the current room
 
@@ -321,10 +428,10 @@ function closeModal1() {
 }
 
 
+//search and add to UL
 function performSearchTotal(query, ulToAddQuery) {
   // Clear previous search results
   ulToAddQuery.innerHTML = '';
-  // searchAddResults.innerHTML=''
   // Filter availableUsers based on the query
   let matchingUsers = availableUsers.filter(user =>
     user.fname.toLowerCase().includes(query.toLowerCase().trim()) ||
@@ -369,6 +476,24 @@ searchInput1.addEventListener('keyup', event => {
   const query = event.target.value.trim();
   if (query.length > 0) {
     performSearchTotal(query, searchAddResults);
+  }
+});
+
+searchInput2.addEventListener('keyup', event => {
+
+
+  const query = event.target.value.trim();
+  if (query.length > 0) {
+    performSearchTotal(query, searchResults2);
+  }
+  // check if there is any selected user
+  if (selectedUser != null) {
+    const searchResultsItems = searchResults2.querySelectorAll('li');
+    searchResultsItems.forEach(item => {
+      item.classList.add('disabled');
+    });
+    sendMsgBtn.classList.remove('disabled')
+
   }
 });
 
@@ -456,6 +581,70 @@ searchAddResults.addEventListener('click', event => {
   }
 });
 
+// Event delegation for search results click
+searchResults2.addEventListener('click', event => {
+  const li = event.target;
+  if (li.id == -1) {
+    console.log('User clicked:', event.target.id);
+    alert('Please enter a valid username, phone, or mail');
+    return;
+  }
+
+  if (selectedUser) {
+    console.log('User already selected');
+    return;
+  }
+
+  const userIndex = availableUsers.findIndex(user => user.id === parseInt(li.id));
+  const user = availableUsers[userIndex];
+
+  // const selectedUserContainer = document.getElementById('selectedUser');
+
+  // Clear previous selection
+  selectedUserUl.innerHTML = '';
+
+  if (!li.classList.contains('selected')) {
+    li.classList.add('selected');
+
+    // Update the selected user
+    selectedUser = user;
+
+    // Create a new <li> element for the selected user
+    const selectedUserLi = document.createElement('li');
+    selectedUserLi.classList.add('list-group-item');
+    selectedUserLi.id = user.id;
+    selectedUserLi.innerHTML = `${user.fname} [${user.phone} ; ${user.email}]
+    <button type="button" id="deleteBtn" class="btn-close float-end"></button>`;
+
+    // Add click event listener to delete button
+    const deleteBtn = selectedUserLi.querySelector('#deleteBtn');
+    deleteBtn.addEventListener('click', function () {
+      selectedUser = null;
+      selectedUserUl.innerHTML = '';
+
+      // Enable selection again
+      const searchResultsItems = searchResults2.querySelectorAll('li');
+      searchResultsItems.forEach(item => item.classList.remove('disabled'));
+      //Enable the send PM button 
+      sendMsgBtn.classList.add('disabled')
+    });
+
+    // Append the <li> element to the selected user container
+    selectedUserUl.appendChild(selectedUserLi);
+
+    //Enable the send PM button 
+    sendMsgBtn.classList.remove('disabled')
+    // Disable selection of other items
+    const searchResultsItems = searchResults2.querySelectorAll('li');
+    searchResultsItems.forEach(item => {
+      if (item !== li) {
+        item.classList.add('disabled');
+      }
+    });
+
+    console.log('User clicked:', user);
+  }
+});
 
 
 function addUser(user, ul, array) {
@@ -494,8 +683,25 @@ function removeUser(user, ul, array) {
     console.log('After removing user, selectedUserArray:', array);
   }
 }
+// send new private message button (top left)
+sendPMBtn.addEventListener("click", function () {
 
+  // Reset the user list
+  searchResults2.innerHTML = '';
+  // Populate the user list with max 5 top people in availableUsers
+  let top5Users = availableUsers.slice(0, 5)
 
+  top5Users.forEach(user => {
+    const li = document.createElement('li');
+    li.classList = "list-group-item"
+    li.id = user.id
+    li.innerHTML = `${user.fname} [${user.phone} ; ${user.email}]`
+    searchResults2.appendChild(li);
+  });
+  // Toggle the modal when the SVG icon is clicked
+  var modal = new bootstrap.Modal(document.getElementById("sendPMModal"));
+  modal.toggle();
+});
 
 // Event listener for createGroupBtn click
 createGroupBtn.addEventListener('click', openModal);
@@ -504,10 +710,22 @@ viewUsersBtn.addEventListener('click', openModal1);
 // Event listener for cancelBtn click
 cancelBtn.addEventListener('click', closeModal);
 cancelBtn2.addEventListener('click', closeModal1);
+cancelBtn3.addEventListener('click', () => {
+  adminStatusUl.innerHTML = ''
+});
+
+cancelBtn4.addEventListener("click", function () {
+  searchResults2.innerHTML = '';
+  searchInput2.innerHTML = '';
+});
+
 
 closeBtn.addEventListener('click', closeModal);
 closeBtn1.addEventListener('click', closeModal1);
-
+closeBtn2.addEventListener("click", function () {
+  searchResults2.innerHTML = '';
+  searchInput2.innerHTML = '';
+});
 // function for when create group clicked ---> Call the create room API for public room to create the chat room                                     
 async function createGroup(e) {
   e.preventDefault();
@@ -572,6 +790,30 @@ async function createGroup(e) {
 
 };
 
+async function sendPM(e) {
+  e.preventDefault()
+  //some logic to handle existing Private room required
+  try {
+    const response = await axios.post(`http://localhost:3000/createPrivateRoom/${selectedUser.id}`, { selectedUser }, {
+      headers: {
+        'authorization': token
+      }
+    })
+    if (response.status == 200) {
+      console.log(response.data.roomId)
+      alert('Created new private room')
+    }
+    else if (response.status == 201) {
+      console.log(response.data.roomId)
+      alert('Already exists')
+    }
+  }
+  catch (err) {
+    console.log('error', err)
+    // throw new Error(err)
+  }
+}
+
 //function to add users to group
 async function addUsers(e) {
   e.preventDefault()
@@ -584,7 +826,7 @@ async function addUsers(e) {
     if (response.status == 200) {
       console.log('Successfully added users to group', response.data.results)
       alert('Added users to group')
-      getRoomUsers(current_Room_ID)
+      await getRoomUsers(current_Room_ID)
       closeBtn1.click()
     }
   }
@@ -727,6 +969,8 @@ function createSendDiv(data, time, name, newcheck) {
   tr.classList = 'message_sent';
   const td1 = document.createElement('td');
   const td2 = document.createElement('td');
+  td1.classList = "col-10"
+  td2.classList = "col-2"
   td1.innerHTML = `
     <p class="bg-primary p-2 mt-2 mr-2 mb-2 text-white float-end rounded shadow">
       ${data}
@@ -760,6 +1004,8 @@ function createRecDiv(data, time, name, newcheck) {
   tr.classList = 'message_rec';
   const td1 = document.createElement('td');
   const td2 = document.createElement('td');
+  td1.classList = "col-10"
+  td2.classList = "col-2"
   td1.innerHTML = `
   <p class="bg-success p-2 mt-2 mr-5 text-white float-start rounded shadow">
     <span style="font-size: small; font-style: italic">>. ${name}</span><br>
@@ -830,13 +1076,19 @@ function logout(e) {
 //     menuContent.style.display = menuContent.style.display === "none" ? "block" : "none";
 //   });
 // });
+chatBtn.addEventListener('click', function (event) {
+  event.preventDefault(); // Prevent any default click behavior
+  submitForm();
+});
+chatForm.addEventListener('submit', function (event) {
+  event.preventDefault(); // Prevent the default form submission
 
-
+  // Call your form submission function here
+  submitForm();
+});
 
 // Add click event listener
-async function submitForm(event) {
-  // Prevent the default form submission
-  event.preventDefault();
+async function submitForm() {
 
   // Get the chat form and message input
   const chatForm = document.querySelector('#chat-form');
@@ -844,12 +1096,44 @@ async function submitForm(event) {
 
   // Perform your form submission logic or custom actions here
   // For example, you can retrieve the input value and send it via AJAX
-  const message = messageInput.value;
+
+  const message = messageInput.value.trim();
   console.log('Submitted message:', message);
 
-  const response = await axios.post('http://localhost:3000/postMessage', { message, roomId: current_Room_ID }, { headers: { "authorization": token } })
-  if (response.status == 200)
-    console.log('Message posted to server')
-  // Reset the form after submission
-  chatForm.reset();
+  if (message.length == 0) {
+    alert('Please enter a message')
+    return
+  }
+  try {
+    const response = await axios.post('http://localhost:3000/postMessage', { message, roomId: current_Room_ID }, { headers: { "authorization": token } })
+    if (response.status == 200)
+      console.log('Message posted to server')
+    // Reset the form after submission
+    messageInput.value = '';
+    // chat_messages.innerHTML=''
+    // await getMsg(current_Room_ID)
+    const sendTime = new Date()
+    const data = { current_Room_ID, message, sendTime };
+    socket.emit('sendMessage', data);
+
+    createSendDiv(message, sendTime)
+    container.scrollTop = container.scrollHeight;
+    // const roomId = current_Room_ID// Obtain the room ID
+    // const updatedAt = new Date(); // Current timestamp
+    // const response1 = await axios.put(`http://localhost:3000/updateRoom/${roomId}`, { updatedAt });
+
+    // if (response1.status === 200) {
+    //   // Room updated successfully
+    //   console.log('Room updated');
+    // } else {
+    //   // Handle update failure
+    //   console.log('Room update failed');
+    // }
+  }
+  catch (err) {
+    console.log('Error sending message', err)
+  }
+  await getUserRooms()
+  // window.location.reload()
+
 }

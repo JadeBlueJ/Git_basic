@@ -11,7 +11,7 @@
 
   <!-- Custom CSS -->
   <link rel="stylesheet" href="css/styles.css">
-
+  <script src="https://cdn.socket.io/3.1.1/socket.io.min.js"></script>
   <title>WhatsApp Web</title>
 </head>
 <!-- Modal (group)-->
@@ -45,6 +45,41 @@
       <div class="modal-footer">
         <button type="button" id="closeBtn" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
         <button type="submit" class="btn btn-primary" onclick="createGroup(event)">Create Group</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal (PM)-->
+<div class="modal fade" id="sendPMModal" tabindex="-1" aria-labelledby="ModalLabel4" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="ModalLabel4">Select User</h5>
+        <button type="button" id="cancelBtn4" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="sendPMForm">
+          <div class="modal-content">
+            <br>
+            <input class="form-control" id="searchInput2" type="text" name="searchQuery2" placeholder="Search a user:">
+
+            <ul class="list-group list-group-flush" id="searchResults2">
+              <!-- Search results will be dynamically added here -->
+            </ul>
+            <hr class="dropdown-divider">
+            <p><i>Selected User</i></p>
+            <ul class="list-group list-group-flush" id="selectedUser">
+              <!-- Selected users will be dynamically added here -->
+            </ul>
+            <hr class="dropdown-divider">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="closeBtn2" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="submit" class="btn btn-primary disabled" id="sendMsgBtn" onclick="sendPM(event)" >Send Message</button>
+
       </div>
     </div>
   </div>
@@ -147,7 +182,7 @@
         <div class="col-sm-4 border-end border-secondary border-1">
           <span class="float-end mt-3">
 
-            <svg width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-chat-left-fill mx-3" fill="currentColor"
+            <svg id="sendPMBtn" width="1em" height="1em" viewBox="0 0 16 16" class="bi bi-chat-left-fill mx-3" fill="currentColor"
               xmlns="http://www.w3.org/2000/svg">
               <path fill-rule="evenodd"
                 d="M2 0a2 2 0 0 0-2 2v12.793a.5.5 0 0 0 .854.353l2.853-2.853A1 1 0 0 1 4.414 12H14a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z" />
@@ -171,8 +206,7 @@
               <button type="button" class="dropdown-item" href="#" id="createGroupBtn" data-bs-toggle="modal"
                 data-bs-target="#createGroupModal">Create Group</button>
               <button class="dropdown-item" id="viewUsersBtn" data-bs-toggle="modal" data-bs-target="#userRoomModal"
-                id="viewUsersBtn" type="button">View/Add Users</button>
-              <button class="dropdown-item" type="button">Another action</button>
+                type="button">View/Add Users</button>
               <button class="dropdown-item" type="button" onclick="logout(event)">Logout</button>
             </div>
           </div>
@@ -206,13 +240,11 @@
             </div>
             <div class="col-sm-8">
               <form id="chat-form">
-                <input type="text" id="message" name="message" class="form-control" placeholder="Write message..."
-                  required>
+                <input type="text" id="message" name="message" class="form-control" placeholder="Write message..." required>
               </form>
-
             </div>
             <div class="col-sm-2 mt-1">
-              <svg onclick="submitForm(event)" id="chatBtn" width="1em" height="1em" viewBox="0 0 16 16"
+              <svg id="chatBtn" width="1em" height="1em" viewBox="0 0 16 16"
                 class="bi bi-chevron-double-up" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
                 <path fill-rule="evenodd"
                   d="M7.646 2.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1-.708.708L8 3.707 2.354 9.354a.5.5 0 1 1-.708-.708l6-6z" />
@@ -220,9 +252,10 @@
                   d="M7.646 6.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1-.708.708L8 7.707l-5.646 5.647a.5.5 0 0 1-.708-.708l6-6z" />
               </svg>
             </div>
-
           </div>
         </div>
+        
+        
       </div>
     </div>
 
