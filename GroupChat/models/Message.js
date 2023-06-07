@@ -17,7 +17,10 @@ const Message = sequelize.define('message',{
     type:Sequelize.STRING,
     allowNull: false
   },
-  isIntro:Sequelize.BOOLEAN
+  isIntro:Sequelize.BOOLEAN,
+  isMedia:Sequelize.BOOLEAN,
+  alt: Sequelize.STRING,
+  fileType:Sequelize.STRING,
   
 })
 

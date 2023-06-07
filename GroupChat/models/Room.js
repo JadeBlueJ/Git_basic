@@ -29,6 +29,8 @@ const Room = sequelize.define('room', {
     type: Sequelize.STRING,
     allowNull: true,
   },
+  last_userId:Sequelize.INTEGER,
+  last_userName:Sequelize.STRING
 });
 
 module.exports = Room;

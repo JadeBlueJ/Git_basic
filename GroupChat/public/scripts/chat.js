@@ -1,4 +1,5 @@
-let last_msg_time = null
+
+let first_msg_time = null//stores the last message time of selected room after api call. 
 const chat_messages = document.getElementById('chat-messages')
 const room_list = document.getElementById('room_list')
 let currentRoomSplash = document.getElementById('currentRoom')
@@ -10,31 +11,65 @@ const adminBtn = document.getElementById('adminBtn')
 const sendMsgBtn = document.getElementById("sendMsgBtn");
 const chatForm = document.getElementById('chat-form');// import io from 'socket.io-client'
 const chatBtn = document.getElementById('chatBtn');
-//Socket
+//Socket config
 const socket = io('http://localhost:3000')
 
 socket.on('connect', () => {
-  console.log('connected socket, ID:', socket.id)
+  socket.userId = parseInt(localUser.id)
+  console.log('connected socket, uID:', socket.userId)
 })
-
 // Event listener for incoming messages
 socket.on('newMessage', async (data) => {
   // Update the chat window with the new message
-  console.log('Inside sockets recevied msg', data)
-  // console.log('room:',roomId)
-  // console.log('time',time)
-  if (current_Room_ID == data.roomId) {
-    console.log('same room')
-    createRecDiv(data.message, data.time,'Name');
-    container.scrollTop = container.scrollHeight;
-    await getUserRooms()
+  console.log('Received a new message:', data);
+  const { isMedia, isIntro } = data;
+
+  if (!isMedia) {
+    const { message, time, userName, roomId } = data;
+
+    if (!isIntro) {
+      if (parseInt(current_Room_ID) == roomId) {
+        console.log('Same room');
+        createRecDiv(message, time, userName);
+        container.scrollTop = container.scrollHeight;
+      } else {
+        console.log('Message from another group');
+      }
+    }
+    else if (isIntro) {
+      if (parseInt(current_Room_ID) == roomId) {
+        createSplashDiv(message, false)
+        container.scrollTop = container.scrollHeight;
+      }
+      else {
+        console.log('Message from another group');
+      }
+    }
+
   }
-  else {
-    console.log('Message from another group')
-    await getUserRooms()
+  else if (isMedia) {
+    const { message, time, userName, roomId, fileType } = data;
+
+    if (parseInt(current_Room_ID) == roomId) {
+      console.log('Same room');
+      createRecDiv(message, time, userName, true, fileType);
+      container.scrollTop = container.scrollHeight;
+    } else {
+      console.log('Message from another group');
+    }
   }
+  await getUserRooms();
+  active_Swap();
+
 });
 
+//upload progress
+socket.on('uploadProgress', (data) => {
+  const progress = data.progress;
+  // Update your UI or perform actions based on the progress value
+  console.log(`Upload progress: ${progress}%`);
+
+});
 
 const username = localStorage.getItem('username')
 const localUser = JSON.parse(localStorage.getItem('user'))
@@ -69,12 +104,13 @@ const searchResults2 = document.getElementById('searchResults2');
 const cancelBtn4 = document.getElementById('cancelBtn3');
 const closeBtn2 = document.getElementById('closeBtn2');
 const selectedUserUl = document.getElementById('selectedUser')
-
+const loadingIcon = document.getElementById('loadingIcon');
 
 let availableUsers = [] //for search person modal 
 let selectedUsersArray = []// for keeping the selected users of search modal
 let selectedUser = null; //for keeping selected PM user
 let selectedAddUsersArray = []  // for keeping the selected users of add users search modal
+
 
 window.addEventListener("load", async () => {
   try {
@@ -87,17 +123,22 @@ window.addEventListener("load", async () => {
     if (current_Room_ID == null || current_Room_Name == null) {
       chat_messages.innerHTML = '';
       createSplashDiv('Please select a conversation');
+      return
     } else {
       currentRoomSplash.innerHTML = `${current_Room_Name}`;
       chat_messages.innerHTML = '';
       getMsg(current_Room_ID);
       getRoomUsers(current_Room_ID);
+      active_Swap()
+
       container.scrollTop = container.scrollHeight;
+      return
     }
   } catch (error) {
     console.error('Error in window load event handler:', error);
   }
 });
+
 
 // if(localMsg==null)
 //   { 
@@ -144,91 +185,7 @@ async function getUserRooms() {
 
   }
   else console.log('Something went wrong: GetRooms')
-
-  room_list_data.forEach(room => {
-
-    if (!room.isPrivate) {
-      socket.emit('joinGroupChat', room.id);
-      const tr = document.createElement('tr');
-      const td1 = document.createElement('td');
-      const td2 = document.createElement('td');
-
-      if (room.last_message != null) {
-        td1.innerHTML = `${room.name}<br><small>${room.last_message}</small><br>`;
-      }
-      else {
-        td1.innerHTML = `${room.name}`;
-      }
-      if (room.last_activity != null)
-        td2.innerHTML = `<small>${getTime(room.last_activity)}</small>`;
-      tr.appendChild(td1);
-      tr.appendChild(td2);
-
-
-      tr.id = room.id
-      room_list.appendChild(tr);
-
-      tr.addEventListener('click', () => {
-        // Call your function here
-
-        currentRoomSplash.innerHTML = `${room.name}`
-        //emit joining to a group here. 
-        
-        handleRoomClick(tr.id, room.name);
-      });
-
-    }
-    else {
-      socket.emit('joinPrivateChat', room.id);
-
-      const tr = document.createElement('tr');
-      const td1 = document.createElement('td');
-      const td2 = document.createElement('td');
-
-      const roomNameParts = room.name.split('_');
-      const userIds = roomNameParts.slice(1);
-
-
-      // Assuming you have the localUser variable containing the local user's ID
-      const localUserId = localUser.id;
-
-      let otherUserId;
-
-      // Find the user ID that is not the local user's ID
-      for (const userId of userIds) {
-        if (parseInt(userId) !== localUserId) {
-          otherUserId = parseInt(userId);
-          break;
-        }
-      }
-      const otherUser = availableUsers.find(user => user.id === otherUserId);
-      if (otherUser) {
-        const otherUserName = otherUser.fname;
-        // console.log('Other User Name:', otherUserName);
-        if (room.last_message != null) {
-          td1.innerHTML = `${otherUserName}<br><small>${room.last_message}</small><br>`;
-        }
-        else {
-          td1.innerHTML = `${otherUserName}`;
-        }
-        if (room.last_activity != null)
-          td2.innerHTML = `<small>${getTime(room.last_activity)}</small>`;
-        tr.appendChild(td1);
-        tr.appendChild(td2);
-
-        tr.id = room.id
-        room_list.appendChild(tr);
-
-        tr.addEventListener('click', () => {
-          // Call your function here
-          currentRoomSplash.innerHTML = `${otherUserName}`
-          //emit joining to a pvt chat here. 
-
-          handleRoomClick(tr.id, otherUserName);
-        });
-      }
-    }
-  })
+  room_list_data.forEach(room => populateRoomList(room))
 }
 
 //gets and updates all users in a room - Called when room clicked, and on refresh event with local user stored, on adding users and on remove
@@ -266,32 +223,50 @@ async function getRoomUsers(room_ID) {
         deleteButton.addEventListener('click', async () => {
           // Handle delete button click event
           console.log('Delete button clicked for user:', user.id);
-          // Add your logic for deleting the user here
-          try {
-            const response = await axios.delete(`http://localhost:3000/admin/removeUserFromRoom/${room_ID}/${user.id}`, {
-              headers: {
-                "authorization": token
-              }
-            })
-            if (response.status == 200) {
-              alert('User deleted')
-              console.log('User deleted')
+          if (confirm('Remove user from group?')) {
+            try {
+              const response = await axios.delete(`http://localhost:3000/admin/removeUserFromRoom/${room_ID}/${user.id}/${user.fname}`, {
+                headers: {
+                  "authorization": token
+                }
+              })
+              if (response.status == 200) {
+                alert('User deleted')
+                console.log('User deleted')
 
-              const userIndex = existingUsersArray.findIndex(u => u.id === user.id);
-              if (userIndex !== -1) {
-                existingUsersArray.splice(userIndex, 1);
-                console.log('Removed user from array existingUsersArray:', existingUsersArray)
-              }
+                //emit message
+                const message = response.data.message
+                const sendTime = new Date()
+                const data = { room_ID, message, sendTime, userName: localUser.fname, isIntro: true };
+                socket.emit('sendMessage', data);
 
-              const liToRemove = document.getElementById(user.id);
-              if (liToRemove) {
-                existingUsersUl.removeChild(liToRemove);
+                createSplashDiv(message, false)
+                container.scrollTop = container.scrollHeight;
+
+                //disconnect the socket from the room??
+
+
+                const userIndex = existingUsersArray.findIndex(u => u.id === user.id);
+                if (userIndex !== -1) {
+                  existingUsersArray.splice(userIndex, 1);
+                  console.log('Removed user from array existingUsersArray:', existingUsersArray)
+                }
+
+                const liToRemove = document.getElementById(user.id);
+                if (liToRemove) {
+                  existingUsersUl.removeChild(liToRemove);
+                }
+
+                await getUserRooms()
+                active_Swap()
               }
             }
+            catch (err) {
+              console.log(err)
+            }
           }
-          catch (err) {
-            console.log(err)
-          }
+          // Add your logic for deleting the user here
+
         });
 
         li.innerHTML = `${user.fname} [${user.phone} ; ${user.email}] ${isAdmin}`;
@@ -358,6 +333,8 @@ async function handleRoomClick(roomId, roomName) {//clear message field
   current_Room_Name = roomName
   localStorage.setItem('current_Room_ID', roomId)
   localStorage.setItem('current_Room_Name', roomName)
+
+  active_Swap()
 
   //get all users of the room and add to modal
   await getRoomUsers(current_Room_ID)
@@ -534,7 +511,7 @@ searchResults.addEventListener('click', event => {
   }
 });
 
-// Event delegation for search results click
+// Event delegation for add users results click
 searchAddResults.addEventListener('click', event => {
   const li = event.target
   if (li.id == -1) {
@@ -581,7 +558,7 @@ searchAddResults.addEventListener('click', event => {
   }
 });
 
-// Event delegation for search results click
+// Event delegation for send PM results click
 searchResults2.addEventListener('click', event => {
   const li = event.target;
   if (li.id == -1) {
@@ -603,47 +580,45 @@ searchResults2.addEventListener('click', event => {
   // Clear previous selection
   selectedUserUl.innerHTML = '';
 
-  if (!li.classList.contains('selected')) {
-    li.classList.add('selected');
+  // Update the selected user
+  selectedUser = user;
 
-    // Update the selected user
-    selectedUser = user;
-
-    // Create a new <li> element for the selected user
-    const selectedUserLi = document.createElement('li');
-    selectedUserLi.classList.add('list-group-item');
-    selectedUserLi.id = user.id;
-    selectedUserLi.innerHTML = `${user.fname} [${user.phone} ; ${user.email}]
+  // Create a new <li> element for the selected user
+  const selectedUserLi = document.createElement('li');
+  selectedUserLi.classList.add('list-group-item');
+  selectedUserLi.id = user.id;
+  selectedUserLi.innerHTML = `${user.fname} [${user.phone} ; ${user.email}]
     <button type="button" id="deleteBtn" class="btn-close float-end"></button>`;
 
-    // Add click event listener to delete button
-    const deleteBtn = selectedUserLi.querySelector('#deleteBtn');
-    deleteBtn.addEventListener('click', function () {
-      selectedUser = null;
-      selectedUserUl.innerHTML = '';
+  // Add click event listener to delete button
+  const deleteBtn = selectedUserLi.querySelector('#deleteBtn');
+  deleteBtn.addEventListener('click', function () {
+    selectedUser = null;
+    selectedUserUl.innerHTML = '';
 
-      // Enable selection again
-      const searchResultsItems = searchResults2.querySelectorAll('li');
-      searchResultsItems.forEach(item => item.classList.remove('disabled'));
-      //Enable the send PM button 
-      sendMsgBtn.classList.add('disabled')
-    });
-
-    // Append the <li> element to the selected user container
-    selectedUserUl.appendChild(selectedUserLi);
-
-    //Enable the send PM button 
-    sendMsgBtn.classList.remove('disabled')
-    // Disable selection of other items
+    // Enable selection again
     const searchResultsItems = searchResults2.querySelectorAll('li');
-    searchResultsItems.forEach(item => {
-      if (item !== li) {
-        item.classList.add('disabled');
-      }
-    });
+    searchResultsItems.forEach(item => item.classList.remove('disabled'));
+    //Enable the send PM button 
+    sendMsgBtn.classList.add('disabled')
+  });
 
-    console.log('User clicked:', user);
-  }
+
+  // Append the <li> element to the selected user container
+  selectedUserUl.appendChild(selectedUserLi);
+
+  //Enable the send PM button 
+  sendMsgBtn.classList.remove('disabled')
+  // Disable selection of other items
+  const searchResultsItems = searchResults2.querySelectorAll('li');
+  searchResultsItems.forEach(item => {
+    if (item !== li) {
+      item.classList.add('disabled');
+    }
+  });
+
+  console.log('User clicked:', user);
+
 });
 
 
@@ -725,7 +700,10 @@ closeBtn1.addEventListener('click', closeModal1);
 closeBtn2.addEventListener("click", function () {
   searchResults2.innerHTML = '';
   searchInput2.innerHTML = '';
+  selectedUser = null
+  selectedUserUl.innerHTML = ''
 });
+
 // function for when create group clicked ---> Call the create room API for public room to create the chat room                                     
 async function createGroup(e) {
   e.preventDefault();
@@ -740,40 +718,32 @@ async function createGroup(e) {
 
       //Backend call to API
       const response = await axios.post(`http://localhost:3000/createRoom/${roomName}`, {
-        selectedUserList: selectedUsersArray
+        selectedUserList: selectedUsersArray,
       })
 
       if (response.status == 200) {
         const room_ID = response.data.roomId
         console.log('Room ID for newly created room', room_ID)
-        await getUserRooms()
         alert('Room Created')
-        //Create a splash for new group and a list of all participants, uptil 10 people and say ....and x other people for the remaining ones. 
-        if (selectedUsersArray.length > 4) {
-          // Display message for more than 5 people
-          const message = `Created room "${roomName}" with users: ${selectedUsersArray[0].fname}, ${selectedUsersArray[1].fname},
-              ${selectedUsersArray[2].fname}, ${selectedUsersArray[3].fname}, and ${selectedUsersArray.length - 4} other people`;
+        //Join the creator to the new room socket
+        // socket.join(room_ID)
 
-          await axios.post('http://localhost:3000/newConnection', { message, roomId: room_ID }, { headers: { "authorization": token } });
-
-          createSplashDiv(message);
-        }
-
-        else {
-          // Display message for 2 to 4 people
-          const participants = selectedUsersArray.map(user => user.fname).join(", ");
-          const message = `Created room "${roomName}" with users: ${participants}`;
-
-          await axios.post('http://localhost:3000/newConnection', { message, roomId: room_ID }, { headers: { "authorization": token } });
-
-          createSplashDiv(message);
-        }
-        window.location.reload()
+        await getUserRooms()
+        // await getRoomUsers(room_ID)
+        active_Swap()
         // Close the modal
         const createGroupModal = document.getElementById('createGroupModal');
         const modal = bootstrap.Modal.getInstance(createGroupModal);
         modal.hide();
         closeModal();
+        //emit message
+        const message = response.data.msg
+        const sendTime = new Date()
+        const data = { current_Room_ID, message, sendTime, userName: localUser.fname, isIntro: true };
+        socket.emit('sendMessage', data);
+
+        createSplashDiv(message, false)
+        container.scrollTop = container.scrollHeight;
       }
       else {
         alert('Something went wrong ')
@@ -790,7 +760,7 @@ async function createGroup(e) {
 
 };
 
-async function sendPM(e) {
+async function newPvtChat(e) {
   e.preventDefault()
   //some logic to handle existing Private room required
   try {
@@ -801,12 +771,24 @@ async function sendPM(e) {
     })
     if (response.status == 200) {
       console.log(response.data.roomId)
-      alert('Created new private room')
+      // alert('Created new private room')
+      closeBtn2.click()
+      await getRoomUsers(response.data.roomId)
+      await getUserRooms()
+      const tbody = document.getElementById("room_list")
+      const lastTr = tbody.lastElementChild;
+      lastTr.click()
+      return
     }
     else if (response.status == 201) {
-      console.log(response.data.roomId)
-      alert('Already exists')
+      const roomId = response.data.roomId;
+      const tr = document.querySelector(`#room_list tr[id='${roomId}']`);
+      closeBtn2.click()
+      tr.click();
+      return
+      // alert('Already exists');
     }
+    closeBtn2.click()
   }
   catch (err) {
     console.log('error', err)
@@ -824,9 +806,19 @@ async function addUsers(e) {
       }
     });
     if (response.status == 200) {
-      console.log('Successfully added users to group', response.data.results)
-      alert('Added users to group')
+      //emit message
+      const message = response.data.message
+      const sendTime = new Date()
+      const data = { current_Room_ID, message, sendTime, userName: localUser.fname, isIntro: true };
+      socket.emit('sendMessage', data);
+      socket.emit('joinGroupChat', current_Room_ID)
+      createSplashDiv(message, false)
+      container.scrollTop = container.scrollHeight;
+
+      await getUserRooms()
       await getRoomUsers(current_Room_ID)
+      active_Swap()
+      // createSplashDiv(response.data.message)
       closeBtn1.click()
     }
   }
@@ -835,40 +827,10 @@ async function addUsers(e) {
   }
 }
 
-
-//if local storage there, update the last_msg_time accordingly
-if (localMsg != null) {
-  last_msg_time = JSON.parse(localMsg)[0].createdAt;
-  console.log('Last seen from LocalStorage: ', last_msg_time)
-}
-
 if (!username) {
   alert('Logged out')
   window.location.href = '/login'
 }
-
-
-
-// setInterval(async()=>{
-//   await updateMsg()
-
-//   //Check periodically for local storage updates and keep length to given param
-//   const allowedItems=12
-//   localMsg = localStorage.getItem('localMsg')
-//   parsedLocal = JSON.parse(localMsg)
-//   if(parsedLocal.length>0)
-//   { console.log('mod local storage in setinterval')
-//     while(parsedLocal.length>allowedItems)
-//     {
-//       parsedLocal.pop() 
-//     }
-//     const strLocal = JSON.stringify(parsedLocal)
-//     localStorage.setItem('localMsg',strLocal)
-//     last_msg_time=parsedLocal[0].createdAt //update last_msg_time with latest offline message
-
-//   }
-// },2000000)
-
 
 // function getting all messages for a particular room 
 async function getMsg(clickedRoom) {
@@ -882,100 +844,123 @@ async function getMsg(clickedRoom) {
       }
     });
   let allMsg = response.data.allMsg; //get all messages 
-  // console.log('Messages in clicked room:',allMsg)
+  first_msg_time = response.data.firstMsgTime
+  console.log('Last msg time for selected group: ', getTime(first_msg_time))
+
   // iterate over the allMsg array and display the messages
   if (allMsg.length > 0) {
     allMsg.forEach(msg => {
-      arrayHandler(msg, false) //boolean parameter to check if to add message to bottom most position(for new messages)
+      arrayHandler(msg, false)
     });
-    last_msg_time = allMsg[0].createdAt;
     localStorage.setItem('localMsg', JSON.stringify(allMsg))
-
   }
-  container.scrollTop = container.scrollHeight;
-  // else
-  // {
-  //   createSplashDiv('Start the conversation',true)
-  // }
+  if (container.scrollHeight > 10)
+    container.scrollTop = container.scrollHeight;
 }
 
-//on entering a chat by user
-// async function chatmsg(e)
-// {
-//   e.preventDefault()
-//   const msg = e.target.message.value
-//   console.log(msg)
-//   alert(msg)
-//   // const response = await axios.post('http://localhost:3000/postMessage',{message:msg,roomId:current_Room},{headers:{"authorization":token}})
-//   // let entry = response.data.entry
-//   // console.log(msg)
-//   e.target.message.value = ""
-//   // updateMsg() //Calling updatemsg here instead of creating div
-//   // createSendDiv(msg,entry.createdAt,true)
-//   // localStorage.setItem('localMsg',JSON.stringify(localMsg.reverse().push(entry).reverse()))
-//   // last_msg_time=entry.createdAt
+container.addEventListener('scroll', async () => {
+  if (container.scrollTop === 0) {
+    lastMsg = chat_messages.firstElementChild
+    // User has scrolled to the top, load more messages
+    if (lastMsg)
+      await loadMoreMessages(lastMsg);
+  }
+});
 
-//   // window.location.reload()
-// }
+async function loadMoreMessages(lastMsg) {
 
-//updating the current messages. 
-async function updateMsg() {
-  console.log(current_Room_ID)
-  // returns an array of objects in desc:createdAt
-  const response = await axios.post('http://localhost:3000/getUpdatedMessages', { last_msg_time, current_Room }, {
-    headers: {
-      "authorization": token
-    }
-  });
-  const updateMsg = response.data.updateMsg
-  if (updateMsg.length > 0) {  //if there are any updates, update the local storage and add it in required order. 
-    const updateLocal = JSON.parse(localStorage.getItem('localMsg'))
-    updateLocal.reverse()
-    updateMsg.reverse()
-
-    updateMsg.forEach(msg => {
-      updateLocal.push(msg)
-    })
-    //updated properly considering rtl layout
-    localStorage.setItem('localMsg', JSON.stringify(updateLocal.reverse()))
-
-    updateMsg.reverse().forEach(update => {
-      arrayHandler(update, true)
+  const response = await axios.post('http://localhost:3000/getOldMessages', {
+    roomId: current_Room_ID,
+    first_msg_time
+  },
+    {
+      headers: {
+        "authorization": token
+      }
     });
-    last_msg_time = updateMsg[0].createdAt;//finally update last message time for client
+  let oldMsg = response.data.oldMsg; //get all messages 
+  if (oldMsg.length > 0) {
+    console.log('oldMsg:', oldMsg)
+    oldMsg.forEach(msg => {
+      arrayHandler(msg, true)
+    })
+    first_msg_time = oldMsg[oldMsg.length - 1].createdAt
+    console.log('After updating old msg, first msg time:', getTime(first_msg_time))
+    lastMsg.scrollIntoView();
   }
+  else {
+    console.log('No older messages')
+  }
+
+
+
 }
-
 //creates divs according to given array items
-function arrayHandler(array_item, add_location_bottom) {
-  if (array_item.isIntro) {
-    createSplashDiv(array_item.text)
+function arrayHandler(array_item, isOld) {
 
+  if (array_item.isIntro) {
+    createSplashDiv(array_item.text, isOld)
+  }
+  else if (array_item.isMedia) {
+    if (array_item.username == username) {
+      createSendDiv(array_item.alt, array_item.createdAt, true, array_item.fileType, isOld)
+    }
+    else {
+      createRecDiv(array_item.alt, array_item.createdAt, array_item.username, true, array_item.fileType, isOld)
+    }
   }
   else {
     if (array_item.username == username) {
-      createSendDiv(array_item.text, array_item.createdAt, add_location_bottom)
+      createSendDiv(array_item.text, array_item.createdAt, false, null, isOld)
     }
     else {
-      createRecDiv(array_item.text, array_item.createdAt, array_item.username, add_location_bottom)
+      createRecDiv(array_item.text, array_item.createdAt, array_item.username, false, null, isOld)
     }
+
   }
+
+
 
 }
 
 //send Div creation 
-function createSendDiv(data, time, name, newcheck) {
+function createSendDiv(data, time, isMedia, fileType, isOld) {
   const tr = document.createElement('tr');
   tr.classList = 'message_sent';
   const td1 = document.createElement('td');
   const td2 = document.createElement('td');
   td1.classList = "col-10"
   td2.classList = "col-2"
-  td1.innerHTML = `
-    <p class="bg-primary p-2 mt-2 mr-2 mb-2 text-white float-end rounded shadow">
-      ${data}
-    </p>
-  `;
+  const messageElement = document.createElement('p');
+  messageElement.classList = 'bg-primary p-2 mt-2 mr-2 mb-2 text-white float-end rounded shadow';
+
+  if (isMedia && fileType.startsWith('image/')) {
+    const imageElement = document.createElement('img');
+    imageElement.src = `https://storage.googleapis.com/gca_files/${data}`; // Replace with your GCS bucket URL
+    imageElement.classList = 'sent-image fit-image float-end';
+    messageElement.appendChild(imageElement);
+  }
+  else if (isMedia && fileType.startsWith('video/')) {
+    const videoElement = document.createElement('video');
+    videoElement.src = `https://storage.googleapis.com/gca_files/${data}`;
+    videoElement.controls = true;
+    videoElement.classList = 'sent-video fit-video float-end';
+    messageElement.appendChild(videoElement);
+  }
+  else {
+    if (isMedia) {
+      const fileLinkElement = document.createElement('a');
+      fileLinkElement.href = `https://storage.googleapis.com/gca_files/${data}`;
+      fileLinkElement.classList = 'text-white small fst-italic';
+      fileLinkElement.textContent = data;
+      messageElement.appendChild(fileLinkElement);
+    }
+  }
+
+  if (!isMedia) {
+    messageElement.textContent = data;
+  }
+  td1.appendChild(messageElement);
   td2.innerHTML = `
     <p class="p-1 mt-2 mb-2 mr-3 shadow-sm float-end rounded-3">
       <small>${getTime(time)}</small>
@@ -984,34 +969,60 @@ function createSendDiv(data, time, name, newcheck) {
 
   tr.appendChild(td1);
   tr.appendChild(td2);
-  chat_messages.appendChild(tr);
-
-  // if(newcheck)
-  // {
-  //   chat_messages.insertBefore(new_msg, chat_messages.firstChild);
-
-  // }
-  // else
-  // {
-  //   chat_messages.appendChild(new_msg) 
-  // }
-
+  if (!isOld) {
+    chat_messages.appendChild(tr);
+  }
+  else if (isOld) {
+    const firstRow = container.querySelector('tr:first-child');
+    chat_messages.insertBefore(tr, firstRow)
+  }
 }
 
 //recc Div creation 
-function createRecDiv(data, time, name, newcheck) {
+function createRecDiv(data, time, name, isMedia, fileType, isOld) {
+
   const tr = document.createElement('tr');
   tr.classList = 'message_rec';
   const td1 = document.createElement('td');
   const td2 = document.createElement('td');
   td1.classList = "col-10"
   td2.classList = "col-2"
-  td1.innerHTML = `
-  <p class="bg-success p-2 mt-2 mr-5 text-white float-start rounded shadow">
-    <span style="font-size: small; font-style: italic">>. ${name}</span><br>
-    ${data}
-  </p>
-`;
+
+  const messageElement = document.createElement('p');
+  messageElement.classList = 'bg-success p-2 mt-2 mr-5 text-white float-start rounded shadow';
+
+  const nameElement = document.createElement('span');
+  nameElement.style = 'font-size: small; font-style: italic';
+  nameElement.textContent = `>. ${name}`;
+
+  messageElement.appendChild(nameElement);
+  messageElement.appendChild(document.createElement('br'));
+
+  if (isMedia && fileType.startsWith('image/')) {
+    const imageElement = document.createElement('img');
+    imageElement.src = `https://storage.googleapis.com/gca_files/${data}`;
+    imageElement.classList = 'received-image fit-image float-start';
+    messageElement.appendChild(imageElement);
+  }
+  else if (isMedia && fileType.startsWith('video/')) {
+    const videoElement = document.createElement('video');
+    videoElement.src = `https://storage.googleapis.com/gca_files/${data}`;
+    videoElement.controls = true;
+    videoElement.classList = 'received-video fit-video float-start';
+    messageElement.appendChild(videoElement);
+  }
+  else if (isMedia) {
+    const fileLinkElement = document.createElement('a');
+    fileLinkElement.href = `https://storage.googleapis.com/gca_files/${data}`;
+    fileLinkElement.classList = 'text-white small fst-italic';
+    fileLinkElement.textContent = data;
+    messageElement.appendChild(fileLinkElement);
+  }
+  if (!isMedia) {
+    messageElement.textContent = data;
+  }
+  td1.appendChild(messageElement);
+
   td2.innerHTML = `
     <p class="p-1 mt-2 mr-3 shadow-sm float-end rounded-3">
       <small>${getTime(time)}</small>
@@ -1019,21 +1030,17 @@ function createRecDiv(data, time, name, newcheck) {
   `;
   tr.appendChild(td1);
   tr.appendChild(td2);
-  chat_messages.appendChild(tr)
-
-  // if(newcheck)
-  // {
-  //   chat_messages.insertBefore(new_msg, chat_messages.firstChild);
-
-  // }
-  // else
-  // {
-  //   chat_messages.appendChild(new_msg) 
-  // }
-
+  if (!isOld) {
+    chat_messages.appendChild(tr);
+  }
+  else if (isOld) {
+    const firstRow = container.querySelector('tr:first-child');
+    chat_messages.insertBefore(tr, firstRow)
+  }
 }
+
 //create welcome message 
-function createSplashDiv(data) {
+function createSplashDiv(data, isOld) {
   const tr = document.createElement('tr');
   tr.classList = 'message_splash ';
 
@@ -1043,14 +1050,114 @@ function createSplashDiv(data) {
   td.style.justifyContent = 'center';
   td.innerHTML = `
     <div class="bg-secondary splash text-center rounded-3 text-white shadow-sm">
-      <p class="splash-text m-1 p-1 "><small> ${data} </small></p>
+      <p class="splash-text m-1 p-1 "><small><i> ${data}</i> </small></p>
     </div>
   `;
 
   tr.appendChild(td);
-  chat_messages.appendChild(tr);
+  if (!isOld) {
+    chat_messages.appendChild(tr);
+  }
+  else if (isOld) {
+    const firstRow = container.querySelector('tr:first-child');
+    chat_messages.insertBefore(tr, firstRow)
+  }
 }
 
+//fill room list with provided room entry
+function populateRoomList(room) {
+  if (!room.isPrivate) {
+    socket.emit('joinGroupChat', room.id);
+    const tr = document.createElement('tr');
+    tr.className = "table"
+    const td1 = document.createElement('td');
+    td1.classList = 'col-10 table-row'
+    const td2 = document.createElement('td');
+
+    if (room.last_message != null) {
+      if (localUser.id == room.last_userId)
+        td1.innerHTML = `${room.name}<br><small>You: ${room.last_message}</small><br>`;
+      else
+        td1.innerHTML = `${room.name}<br><small><i>~${room.last_userName}</i>: ${room.last_message}</small><br>`;
+    }
+    else {
+      td1.innerHTML = `${room.name}`;
+    }
+    if (room.last_activity != null)
+      td2.innerHTML = `<small>${getTime(room.last_activity)}</small>`;
+    tr.appendChild(td1);
+    tr.appendChild(td2);
+
+
+    tr.id = room.id
+    room_list.appendChild(tr);
+
+    tr.addEventListener('click', () => {
+      // Call your function here
+
+      currentRoomSplash.innerHTML = `${room.name}`
+      //emit joining to a group here. 
+
+      handleRoomClick(tr.id, room.name);
+    });
+
+  }
+  else {
+    socket.emit('joinPrivateChat', room.id);
+
+    const tr = document.createElement('tr');
+    tr.className = "table"
+    const td1 = document.createElement('td');
+    td1.classList = 'col-10  table-row'
+    const td2 = document.createElement('td');
+
+    const roomNameParts = room.name.split('_');
+    const userIds = roomNameParts.slice(1);
+
+
+    // Assuming you have the localUser variable containing the local user's ID
+    const localUserId = localUser.id;
+
+    let otherUserId;
+
+    // Find the user ID that is not the local user's ID
+    for (const userId of userIds) {
+      if (parseInt(userId) !== localUserId) {
+        otherUserId = parseInt(userId);
+        break;
+      }
+    }
+    const otherUser = availableUsers.find(user => user.id === otherUserId);
+    if (otherUser) {
+      const otherUserName = otherUser.fname;
+      // console.log('Other User Name:', otherUserName);
+      if (room.last_message != null) {
+        if (room.last_userId == localUser.id)
+          td1.innerHTML = `${otherUserName}<br><small>You: ${room.last_message}</small><br>`;
+        else
+          td1.innerHTML = `${otherUserName}<br><small>${room.last_message}</small><br>`;
+      }
+      else {
+        td1.innerHTML = `${otherUserName}`;
+      }
+      if (room.last_activity != null)
+        td2.innerHTML = `<small>${getTime(room.last_activity)}</small>`;
+      tr.appendChild(td1);
+      tr.appendChild(td2);
+
+      tr.id = room.id
+      room_list.appendChild(tr);
+
+      tr.addEventListener('click', () => {
+        // Call your function here
+        currentRoomSplash.innerHTML = `${otherUserName}`
+        //emit joining to a pvt chat here. 
+
+        handleRoomClick(tr.id, otherUserName);
+      });
+    }
+  }
+}
 
 //better time format
 function getTime(time) {
@@ -1068,35 +1175,35 @@ function logout(e) {
   window.location.href = 'login.html'
 }
 
-//add the open close event for the menu 3 dot button, 
-// document.addEventListener("DOMContentLoaded", function() {
+//swap active room
+function active_Swap() {
+  const trElements = document.querySelectorAll('#room_list tr');
+  trElements.forEach((trElement) => {
+    const roomId = parseInt(trElement.id);
 
+    // Toggle the active class based on the room ID
+    if (roomId == parseInt(current_Room_ID)) {
+      trElement.className = "table-active"
+    }
+    else {
+      trElement.className = "table"
+    }
+  });
+}
 
-//   menuTrigger.addEventListener("click", function() {
-//     menuContent.style.display = menuContent.style.display === "none" ? "block" : "none";
-//   });
-// });
 chatBtn.addEventListener('click', function (event) {
-  event.preventDefault(); // Prevent any default click behavior
+  event.preventDefault();
   submitForm();
 });
 chatForm.addEventListener('submit', function (event) {
-  event.preventDefault(); // Prevent the default form submission
-
-  // Call your form submission function here
+  event.preventDefault();
   submitForm();
 });
 
 // Add click event listener
 async function submitForm() {
 
-  // Get the chat form and message input
-  const chatForm = document.querySelector('#chat-form');
   const messageInput = document.querySelector('#message');
-
-  // Perform your form submission logic or custom actions here
-  // For example, you can retrieve the input value and send it via AJAX
-
   const message = messageInput.value.trim();
   console.log('Submitted message:', message);
 
@@ -1112,28 +1219,104 @@ async function submitForm() {
     messageInput.value = '';
     // chat_messages.innerHTML=''
     // await getMsg(current_Room_ID)
+    //emit the message 
     const sendTime = new Date()
-    const data = { current_Room_ID, message, sendTime };
+    const data = { current_Room_ID, message, sendTime, userName: localUser.fname, isIntro: false };
     socket.emit('sendMessage', data);
 
     createSendDiv(message, sendTime)
     container.scrollTop = container.scrollHeight;
-    // const roomId = current_Room_ID// Obtain the room ID
-    // const updatedAt = new Date(); // Current timestamp
-    // const response1 = await axios.put(`http://localhost:3000/updateRoom/${roomId}`, { updatedAt });
-
-    // if (response1.status === 200) {
-    //   // Room updated successfully
-    //   console.log('Room updated');
-    // } else {
-    //   // Handle update failure
-    //   console.log('Room update failed');
-    // }
   }
   catch (err) {
     console.log('Error sending message', err)
   }
   await getUserRooms()
-  // window.location.reload()
+  active_Swap()
+}
+
+
+// const form = document.getElementById('uploadForm');
+const fileInput = document.getElementById('fileInput');
+fileInput.addEventListener('change', uploadBucket);
+
+//first ul to cloud
+async function uploadBucket() {
+  const file = fileInput.files[0];
+  console.log(file);
+  if (file) {
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'video/mp4'];
+    const maxFileSize = 10 * 1024 * 1024; // 10MB
+
+    // Validate file type and size
+    if (!allowedTypes.includes(file.type)) {
+      alert('Invalid file type. Please upload a PDF, image, or video file.');
+      return;
+    }
+
+    if (file.size > maxFileSize) {
+      alert('File size exceeds the maximum limit of 10MB.');
+      return;
+    }
+    const uniqueId = Date.now(); // Generate a unique identifier (e.g., timestamp)
+    const fileName = `${uniqueId}_${file.name}`; // Append the unique identifier to the file name
+
+    const formData = new FormData();
+    formData.append('file', file, fileName);
+
+    // Show progress bar
+
+    loadingIcon.style.display = 'block';
+
+    try {
+      const response = await axios.post('/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      if (response.status === 200) {
+        // File uploaded successfully, update UI or perform further actions
+        alert('File uploaded successfully!');
+
+        //after cloud upload successful, sync details with db
+        await postFile(fileName, file.type)
+        //emit the message 
+        const sendTime = new Date()
+        const data = { current_Room_ID, message: fileName, sendTime, userName: localUser.fname, fileType: file.type };
+        socket.emit('mediaUploaded', data);
+        createSendDiv(fileName, sendTime, true, file.type);
+        container.scrollTop = container.scrollHeight;
+
+      } else {
+        alert('Failed to upload file. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      alert('An error occurred while uploading the file.');
+    } finally {
+      // Hide progress bar
+      loadingIcon.style.display = 'none';
+      await getUserRooms()
+      active_Swap()
+    }
+  }
+  else {
+    alert('No file available')
+    return
+  }
+
+}
+//after cloud upload=>upload file details to server
+async function postFile(fileName, fileType) {
+
+  try {
+    const response = await axios.post('http://localhost:3000/postFile', { message: "media", roomId: current_Room_ID, alt: fileName, fileType: fileType }, { headers: { "authorization": token } })
+    if (response.status == 200)
+      return
+  }
+  catch (err) {
+    console.log(err)
+  }
+
 
 }

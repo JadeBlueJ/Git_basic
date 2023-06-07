@@ -5,21 +5,28 @@ const express = require('express');
 const bodyParser = require('body-parser')
 const cors = require('cors')
 const adminRoutes = require('./routes/admin')
-
-
+const multer = require('multer');
+const { Storage } = require('@google-cloud/storage');
+require('dotenv').config()
 const Message = require('./models/Message');
 const User = require('./models/User');
 const Room = require('./models/Room');
 const Room_User = require('./models/Room_User');
 
+const app = express()
+// app.use(function(req, res, next) {
+//   res.header("Access-Control-Allow-Origin", "*");
+//   next();
+// });
+app.use(cors())
 
 // const login_routes = require('./routes/login')
 const sequelize = require('./util/database')
 const auth = require('./middleware/auth')
 const { Op } = require('sequelize');
+const storage = new Storage();
+const bucketName = process.env.GC_BUCKET_NAME;
 
-const app = express()
-app.use(cors())
 app.use(bodyParser.json())
 app.use(express.static(path.join(__dirname, '/public')));
 
@@ -27,31 +34,115 @@ const server = require('http').Server(app)
 
 const io = require('socket.io')(server); // Attach Socket.io to the server
 
+
 io.on('connection', (socket) => {
+
   // Joining a private chat room
   socket.on('joinPrivateChat', (roomId) => {
-    console.log('GC join: ',roomId)
-    socket.join(roomId);
+
+    if (!socket.rooms.has(roomId)) {
+      socket.join(roomId);
+    } else {
+      // console.log('Already joined private chat room:', roomId);
+    }
   });
 
   // Joining a group chat room
   socket.on('joinGroupChat', (roomId) => {
-    console.log('GC join: ',roomId)
-    socket.join(roomId);
+    if (!socket.rooms.has(roomId)) {
+      socket.join(roomId);
+    } else {
+      // console.log('Already joined group chat room:', roomId);
+    }
   });
+
 
   // Handling message sent by a user
   socket.on('sendMessage', (data) => {
     console.log('Received a message from a client:', data);
-    const {  message, sendTime } = data;
-    const current_Room_ID=parseInt(data.current_Room_ID)
-  
+    const { message, sendTime, userName, isIntro } = data;
+    const current_Room_ID = parseInt(data.current_Room_ID)
     // Broadcast the message to the corresponding room
-    socket.to(current_Room_ID).emit('newMessage', { message, roomId: current_Room_ID, time: sendTime });
-    console.log('emitted to room')
+    socket.to(current_Room_ID).emit('newMessage', { message, time: sendTime, userName: userName, roomId: current_Room_ID, isMedia: false, isIntro });
+    console.log('Emitted to room:', current_Room_ID);
   });
-  
+
+  // Server-side code
+  socket.on('mediaUploaded', async (data) => {
+    const { message, sendTime, userName, fileType } = data;
+    const current_Room_ID = parseInt(data.current_Room_ID)
+
+    // Emit the new message to the appropriate room
+    socket.to(current_Room_ID).emit('newMessage', { message, time: sendTime, userName: userName, roomId: current_Room_ID, isMedia: true, fileType });
+    console.log('Media emitted to room:', current_Room_ID);
+  });
+
+
 });
+
+// Multer configuration
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'video/mp4'];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Please upload a PDF, image, or video file.'));
+    }
+  },
+});
+
+// POST route for file upload
+app.post('/upload', upload.single('file'), async (req, res) => {
+  try {
+    const file = req.file;
+
+    if (!file) {
+      return res.status(400).json({ message: 'No file uploaded.' });
+    }
+
+    const bucket = storage.bucket(bucketName);
+    const blob = bucket.file(file.originalname);
+
+    const blobStream = blob.createWriteStream({
+      resumable: false,
+      metadata: {
+        contentType: file.mimetype,
+      },
+    });
+
+    blobStream.on('error', (error) => {
+      console.error('Error uploading file:', error);
+      res.status(500).json({ message: 'Failed to upload file.' });
+    });
+
+    let uploadedBytes = 0;
+    const totalBytes = file.buffer.length;
+
+    blobStream.on('progress', (progress) => {
+      uploadedBytes = progress.bytesWritten;
+      const percentage = Math.round((uploadedBytes / totalBytes) * 100);
+      console.log(`Upload progress: ${percentage}%`);
+      // Emit the progress event to the frontend
+      io.emit('uploadProgress', { progress: percentage });
+    });
+
+    blobStream.on('finish', () => {
+      res.status(200).json({ message: 'File uploaded successfully.' });
+    });
+
+    blobStream.end(file.buffer);
+  } catch (error) {
+    console.error('Error uploading file:', error);
+    res.status(500).json({ message: 'An error occurred while uploading the file.' });
+  }
+});
+
+
 
 //Serve pages
 app.get('/styles.css', (req, res) => {
@@ -108,7 +199,6 @@ app.get('/getUserRooms', auth.authenticate, async (req, res) => {
     const rooms = await user.getRooms({
       order: [['last_activity', 'DESC']]
     });
-    // console.log(rooms)
     res.status(200).json({ success: true, rooms });
   } catch (error) {
     console.error('Error retrieving user rooms:', error);
@@ -151,7 +241,22 @@ app.get('/getRoomUsers/:room_ID', async (req, res) => {
     res.status(500).json({ message: 'Error retrieving users' });
   }
 });
-
+//function to update room activity on any event
+async function updateRoomActivity(roomId, message, userId, userName) {
+  const room = await Room.findByPk(roomId)
+  if (room) {
+    room.last_activity = new Date();
+    room.last_message = message
+    room.last_userId = userId
+    room.last_userName = userName
+    await room.save();
+    return
+  }
+  else {
+    console.log('Invalid room')
+    return
+  }
+}
 //Create Public Room 
 app.post('/createRoom/:roomName', async (req, res) => {
   const roomName = req.params.roomName;
@@ -161,7 +266,7 @@ app.post('/createRoom/:roomName', async (req, res) => {
     return res.status(400).json({ success: false, message: 'No users selected' });
   }
   else {
-
+    let users = []
     try {
       const room = await Room.create({
         name: roomName,
@@ -170,6 +275,21 @@ app.post('/createRoom/:roomName', async (req, res) => {
       });
 
       const roomUserPromises = selectedUserList.map((user, index) => {
+        users.push(user.fname)
+
+        let connectedSocket = null;
+        for (const socketId in io.sockets.sockets) {
+          const socket = io.sockets.sockets[socketId];
+          if (socket.userId == user.id) {
+            connectedSocket = socket;
+            break;
+          }
+        }
+        if (connectedSocket) {
+          console.log(`Joining connecedd socket, ${connectedSocket.userId} to new room`)
+          connectedSocket.join(room.id)
+        }
+
         return Room_User.create({
           userId: user.id,
           roomId: room.id,
@@ -179,10 +299,15 @@ app.post('/createRoom/:roomName', async (req, res) => {
 
 
       await Promise.all(roomUserPromises);
-
       console.log('Room created');
+
+      const message = `${room.createdBy} created a new group with participants: ${users.join(', ')}`
+
+      await Message.create({ username: selectedUserList[0].fname, text: message, isIntro: true, userId: selectedUserList[0].id, roomId: room.id })
+      await updateRoomActivity(room.id, message, selectedUserList[0].id, selectedUserList[0].fname)
+
       //success response
-      return res.status(200).json({ success: true, message: 'Room successfully created', roomId: room.id });
+      return res.status(200).json({ success: true, message: 'Room successfully created', msg: message, roomId: room.id });
     }
     catch (error) {
       console.error('Error creating room:', error);
@@ -220,8 +345,8 @@ app.post('/createPrivateRoom/:userID', auth.authenticate, async (req, res) => {
     });
     if (existingRoom) {
       // Private chat already exists
-      console.log('Private chat already exists:', existingRoom);
-      return res.status(201).json({ success: true, message: 'Private Room already exists', roomId: existingRoom.roomId });
+      console.log('Private chat already exists');
+      return res.status(201).json({ success: true, message: 'Private Room already exists', roomId: existingRoom.id });
       // Return the existing chat or appropriate response
     }
     else {
@@ -254,81 +379,11 @@ app.post('/createPrivateRoom/:userID', auth.authenticate, async (req, res) => {
   }
 });
 
-//New connection event 
-app.post('/newConnection', auth.authenticate, async (req, res, next) => {
-  const { message, roomId } = req.body;
-  console.log(req.user)
-  try {
-    const data = await Message.create({ username: req.user.fname, text: message, isIntro: true, userId: req.user.id, roomId: roomId })
-    console.log("New Entry Added: ", data)
-    return res.status(200).json({ message: 'New connection successful' })
-  }
-  catch (err) {
-    console.log(err)
-    return res.status(404).json({ message: 'Error in new connection' })
-  }
-})
-
-//Post message
-app.post('/postMessage', auth.authenticate, async (req, res, next) => {
-  const { message, roomId } = req.body;
-  if (message.trim().length == 0) {
-    res.status(400).json({ success: false, error: 'Null entry' })
-  }
-
-  const postMsg = await Message.create({ username: req.user.fname, text: message, isIntro: false, userId: req.user.id, roomId: roomId }) // store the message in an array
-  console.log("New Entry Added: "); // log the array of messages
-
-  const room = await Room.findByPk(roomId);
-  room.last_activity = new Date();
-  room.last_message = message
-  await room.save();
-
-
-  return res.status(200).json({ message: 'Posted Msg', createdAt: postMsg.createdAt, entry: postMsg });
-});
-
-//Get messages
-app.post('/getMessages', auth.authenticate, async (req, res, next) => {
-  const { roomId } = req.body;
-  console.log(roomId);
-  
-  if (roomId === undefined) {
-    return res.status(400).json({ message: 'Room ID invalid' });
-  }
-  
-  try {
-    const allMsg = await Message.findAll({
-      where: { roomId },
-      order: [['createdAt', 'DESC']],
-      limit: 10,
-    });
-    const reversedMsg = allMsg.reverse();
-    
-    return res.status(200).json({ allMsg:reversedMsg });
-  } catch (error) {
-    console.error('Error retrieving messages:', error);
-    return res.status(500).json({ message: 'Error retrieving messages' });
-  }
-});
-
-
-//Provide updated messages after last local message time for user. 
-app.post('/getUpdatedMessages/', auth.authenticate, async (req, res, next) => {
-  const { last_msg_time, current_Room } = req.body
-  console.log(current_Room)
-  const updateMsg = await Message.findAll({
-    where: { createdAt: { [Op.gt]: last_msg_time }, roomId: current_Room },
-    order: [['createdAt', 'DESC']]
-  });
-  return res.status(200).json({ updateMsg })
-})
-
 //Add users to room
 app.post('/admin/addUsersToRoom/:roomId/', auth.authenticate, async (req, res) => {
   const { roomId } = req.params;
   const { selectedAddUsersArray } = req.body;
-
+  let addedUsers = []
   try {
     // Check if the authenticated user is an admin of the room
     const roomUser = await Room_User.findOne({
@@ -336,6 +391,7 @@ app.post('/admin/addUsersToRoom/:roomId/', auth.authenticate, async (req, res) =
     });
 
     if (!roomUser || !roomUser.isAdmin) {
+
       return res.status(403).json({ success: false, message: 'You do not have permission to add users to this room.' });
     }
 
@@ -348,30 +404,51 @@ app.post('/admin/addUsersToRoom/:roomId/', auth.authenticate, async (req, res) =
       if (existingUser) {
         return { success: false, message: `User with ID ${user.id} is already a member of this room.` };
       }
+      else {
+        addedUsers.push(user.fname)
 
-      // Add the user to the room with isAdmin set to false
-      await Room_User.create({
-        userId: user.id,
-        roomId: roomId,
-        isAdmin: false
-      });
+        let connectedSocket = null;
+        for (const socketId in io.sockets.sockets) {
+          const socket = io.sockets.sockets[socketId];
+          if (socket.userId == user.id) {
+            connectedSocket = socket;
+            break;
+          }
+        }
+        if (connectedSocket) {
+          console.log(`Joining connecedd socket, ${connectedSocket.userId} to existing room ${roomId}`)
+          connectedSocket.join(roomId)
+        }
 
-      return { success: true, message: `User with ID ${user.id} added to the room successfully.` };
+        // Add the user to the room with isAdmin set to false
+        await Room_User.create({
+          userId: user.id,
+          roomId: roomId,
+          isAdmin: false
+        });
+
+        return { success: true, message: `User with ID ${user.id} added to the room successfully.` };
+      }
+
     });
 
     const addResults = await Promise.all(addPromises);
+    addedUsers = addedUsers.join(',')
 
-    res.status(200).json({ results: addResults });
+    const message = `${req.user.fname} added following people to the group: ${addedUsers}`
+    await Message.create({ username: req.user.fname, text: message, isIntro: true, userId: req.user.id, roomId: roomId })
+    await updateRoomActivity(roomId, message, req.user.id, req.user.fname)
+
+    return res.status(200).json({ results: addResults, message });
   } catch (error) {
     console.error('Error adding users to room:', error);
-    res.status(500).json({ success: false, message: 'Error adding users to room.' });
+    return res.status(500).json({ success: false, message: 'Error adding users to room.' });
   }
 });
 
-
 //Remove user
-app.delete('/admin/removeUserFromRoom/:roomId/:userId', auth.authenticate, async (req, res) => {
-  const { roomId, userId } = req.params;
+app.delete('/admin/removeUserFromRoom/:roomId/:userId/:userName/', auth.authenticate, async (req, res) => {
+  const { roomId, userId, userName } = req.params;
 
   try {
     // Check if the authenticated user is an admin of the room
@@ -396,13 +473,158 @@ app.delete('/admin/removeUserFromRoom/:roomId/:userId', auth.authenticate, async
     await Room_User.destroy({
       where: { userId: userId, roomId: roomId }
     });
+    const message = `${req.user.fname} removed ${userName} from the group`
+    await Message.create({ username: req.user.fname, text: message, isIntro: true, userId: req.user.id, roomId: roomId })
 
-    res.status(200).json({ success: true, message: 'User removed from the room successfully.' });
+    let connectedSocket = null;
+    for (const socketId in io.sockets.sockets) {
+      const socket = io.sockets.sockets[socketId];
+      if (socket.userId == userId) {
+        connectedSocket = socket;
+        break;
+      }
+    }
+    if (connectedSocket) {
+      console.log(`remove connected socket, ${connectedSocket.userId} from room: ${roomId}`)
+      connectedSocket.leave(roomId)
+    }
+    else
+    {
+      console.log('Not connected')
+    }
+
+    await updateRoomActivity(roomId, message, req.user.id, req.user.fname)
+
+
+
+    res.status(200).json({ success: true, message });
   } catch (error) {
     console.error('Error removing user from room:', error);
     res.status(500).json({ success: false, message: 'Error removing user from room.' });
   }
 });
+
+
+// //New connection event 
+// app.post('/newEvent', auth.authenticate, async (req, res, next) => {
+//   const { message, roomId,modifier } = req.body;
+
+//   console.log(message, roomId)
+//   try {
+//     const data = await Message.create({ username: req.user.fname, text: message, isIntro: true, userId: req.user.id, roomId: roomId })
+//     console.log("New Entry Added: ", data)
+//     //Update room activity details:
+//     const room = await Room.findByPk(roomId);
+//     console.log('Updating new room activity after creation', room)
+//     room.last_activity = new Date();
+//     room.last_message = message
+//     room.last_userId = req.user.id
+//     room.last_userName = req.user.fname
+//     await room.save();
+//     return res.status(200).json({ message: 'New connection successful',roomId:room.id })
+//   }
+//   catch (err) {
+//     console.log(err)
+//     return res.status(404).json({ message: 'Error in new connection' })
+//   }
+// })
+
+//Post message
+app.post('/postMessage', auth.authenticate, async (req, res, next) => {
+  const { message, roomId } = req.body;
+  if (message.trim().length == 0) {
+    res.status(400).json({ success: false, error: 'Null entry' })
+  }
+  const postMsg = await Message.create({ username: req.user.fname, text: message, isIntro: false, userId: req.user.id, roomId: roomId, isMedia: false }) // store the message in an array
+
+  //Update room activity details:
+  const room = await Room.findByPk(roomId);
+  room.last_activity = new Date();
+  room.last_message = message
+  room.last_userId = req.user.id
+  room.last_userName = req.user.fname
+  await room.save();
+  return res.status(200).json({ message: 'Posted Msg', createdAt: postMsg.createdAt, entry: postMsg });
+});
+
+
+//Post file => update msg
+app.post('/postFile', auth.authenticate, async (req, res, next) => {
+  const { roomId, message, alt, fileType } = req.body;
+  if (!alt)
+    return res.status(404).json({ message: 'Invalid alt text for image' })
+  try {
+    const postFile = await Message.create({ username: req.user.fname, text: message, isIntro: false, userId: req.user.id, roomId: roomId, isMedia: true, alt: alt, fileType: fileType }) // store the message in an array
+    const room = await Room.findByPk(roomId);
+    room.last_activity = new Date();
+    room.last_message = message
+    room.last_userId = req.user.id
+    room.last_userName = req.user.fname
+    await room.save();
+    return res.status(200).json({ message: 'Posted File', createdAt: postFile.createdAt, entry: postFile });
+  }
+  catch (err) {
+    console.log(err)
+    return res.status(500).json({ msg: `Something went wrong while writing file details to db:${err}` })
+  }
+
+});
+
+//Get messages of a room id
+app.post('/getMessages', auth.authenticate, async (req, res, next) => {
+  const { roomId } = req.body;
+
+  if (roomId === undefined) {
+    return res.status(400).json({ message: 'Room ID invalid' });
+  }
+
+  try {
+    const allMsg = await Message.findAll({
+      where: { roomId },
+      order: [['createdAt', 'DESC']],
+      limit: 25,
+    });
+    if (allMsg.length > 0) {
+      const reversedMsg = allMsg.reverse();
+      const firstMsgTime = allMsg[0].updatedAt
+      return res.status(200).json({ allMsg: reversedMsg, firstMsgTime });
+    }
+    else {
+      return res.status(200).json({ allMsg, firstMsgTime: null });
+    }
+
+  } catch (error) {
+    console.error('Error retrieving messages:', error);
+    return res.status(500).json({ message: 'Error retrieving messages' });
+  }
+});
+//Get older messages of a room id
+app.post('/getOldMessages', auth.authenticate, async (req, res, next) => {
+  const { roomId, first_msg_time } = req.body;
+
+  if (roomId === undefined) {
+    return res.status(400).json({ message: 'Room ID invalid' });
+  }
+
+  try {
+    const oldMsg = await Message.findAll({
+      where: {
+        roomId,
+        createdAt: { [Op.lt]: first_msg_time }
+      },
+      order: [['createdAt', 'DESC']],
+      limit: 10,
+    });
+
+
+
+    return res.status(200).json({ oldMsg });
+  } catch (error) {
+    console.error('Error retrieving messages:', error);
+    return res.status(500).json({ message: 'Error retrieving messages' });
+  }
+});
+
 
 //Make admin
 app.put('/admin/updateAdminStatus/:roomId/:userId', auth.authenticate, async (req, res) => {
@@ -438,29 +660,6 @@ app.put('/admin/updateAdminStatus/:roomId/:userId', auth.authenticate, async (re
   }
 });
 
-//update activity status
-app.put('/updateRoom/:roomId', async (req, res) => {
-  const { roomId } = req.params;
-  const { updatedAt } = req.body;
-
-  try {
-    const room = await Room.findByPk(roomId);
-
-    if (!room) {
-      return res.status(404).json({ success: false, message: 'Room not found' });
-    }
-
-    // Update the updatedAt field
-    room.updatedAt = updatedAt;
-    await room.save();
-
-    return res.status(200).json({ success: true, message: 'Room updated successfully' });
-  } catch (error) {
-    console.error('Error updating room:', error);
-    return res.status(500).json({ success: false, message: 'Error updating room' });
-  }
-});
-
 
 //Error page
 app.use((req, res, next) => {
@@ -477,14 +676,6 @@ Room.hasMany(Message, { foreignKey: { name: 'roomId', allowNull: false }, onDele
 
 Room.belongsToMany(User, { through: Room_User, foreignKey: 'roomId' });
 User.belongsToMany(Room, { through: Room_User, foreignKey: 'userId' });
-
-// Define the afterCreate hook
-Message.afterCreate(async (message, options) => {
-  const roomId = message.roomId;
-
-  // Update the corresponding Room's updatedAt field
-  await Room.update({ updatedAt: message.createdAt }, { where: { id: roomId } });
-});
 
 //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 

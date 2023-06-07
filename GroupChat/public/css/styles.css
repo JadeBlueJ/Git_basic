@@ -86,3 +86,26 @@
 #searchAddResults li:hover {
   cursor: pointer;
 }
+
+#ulBtn:hover {
+  cursor: pointer;
+}
+
+#sendPMBtn:hover {
+  cursor: pointer;
+}
+
+.fit-image {
+  max-width: 50%;
+}
+
+.fit-video {
+  max-width: 50%;
+}
+
+  .table-row {
+    max-width: 0; /* Adjust the maximum width as needed */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
