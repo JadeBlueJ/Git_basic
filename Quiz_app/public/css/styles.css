@@ -1,0 +1,113 @@
+.back-top {
+    background-color: #160096;
+    height: 50vh;
+  }
+  
+  .back-main {
+    background-color: #240057;
+    height: 50vh;
+  }
+  
+  .back-container {
+    position: relative;
+  }
+  
+  .front-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+  }
+  
+  .front-container1 {
+    position: absolute;
+    top: 20px;
+    left: 0;
+    right: 0;
+  }
+  
+  .chat-top {
+    background-color: #240057;
+    min-height: 50px;
+  }
+  
+ 
+  .questions {
+    background-color: #080023;
+    min-height: 600px;
+  }
+  .leaderBoard {
+    background-color: #5e508c;
+    min-height: 600px;
+  }
+  
+  .chat-bottom {
+    background-color: #160096;
+    min-height: 50px;
+  }
+  
+
+  .message-area {
+    background-color: #e4e1de;
+    min-height: 600px;
+  
+  }
+  
+  .leaderboard-table-scroll {
+    overflow-y: auto;
+    height: 600px;
+  }
+  
+  .message-box {
+    background-color: #F0F0F0;
+  }
+  
+  /* .row {
+    background-color: rgb(245, 236, 223);
+  } */
+  
+  #chat-messages {
+    max-width: 70%;
+  }
+  
+  #chat-messages td p {
+    word-wrap: break-word;
+    hyphens: auto;
+  }
+  
+  .fit-image {
+    max-width: 100%;
+    height:auto;
+  }
+  
+  .fit-video {
+    max-width: 100%;
+  }
+  
+    .table-row {
+      max-width: 0; /* Adjust the maximum width as needed */
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  
+    #trBtn:hover{
+      cursor:pointer
+    }
+  /* 
+    .message-table-scroll {
+      background-image: url('../darkbg.jpg');
+      background-size: cover;
+    } */
+    .message-row-sent {
+      max-width: 350px; /* Adjust the maximum width as needed */
+      /* max-height: fit-content; */
+      white-space: wrap;
+    }
+  
+    .message-row-rec {
+      max-width: 350px; /* Adjust the maximum width as needed */
+      /* max-height: fit-content; */
+      white-space: wrap;
+    }
+  
